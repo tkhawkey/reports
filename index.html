@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en-GB">
+<html lang="en-GB" spellcheck="false">
 <head>
 <meta charset="utf-8">
 <!--
@@ -348,7 +348,7 @@ dialog p { margin-bottom: var(--space-4); }
         <div class="field">
           <label for="q-comment">Comment from the AI</label>
           <span class="hint" id="q-comment-hint">Paste the comment with its tags, like [NAME] and [HE/SHE].</span>
-          <textarea id="q-comment" rows="9" aria-describedby="q-comment-hint" autocomplete="off"></textarea>
+          <textarea id="q-comment" rows="9" aria-describedby="q-comment-hint" autocomplete="off" spellcheck="false"></textarea>
         </div>
         <div class="row-actions">
           <button type="button" class="btn btn-secondary" id="q-clear">Clear</button>
@@ -408,7 +408,7 @@ dialog p { margin-bottom: var(--space-4); }
           <div class="banner" id="banner" aria-live="polite"></div>
           <div class="field">
             <label for="c-comment" id="c-comment-label">Comment from the AI</label>
-            <textarea id="c-comment" rows="7" autocomplete="off" disabled></textarea>
+            <textarea id="c-comment" rows="7" autocomplete="off" spellcheck="false" disabled></textarea>
           </div>
           <div id="class-output"></div>
           <div class="work-actions">
@@ -458,7 +458,7 @@ dialog p { margin-bottom: var(--space-4); }
     <h2 id="class-dialog-title">New class</h2>
     <div class="field">
       <label for="class-name">Class name</label>
-      <input type="text" id="class-name" maxlength="60" autocomplete="off">
+      <input type="text" id="class-name" maxlength="60" autocomplete="off" spellcheck="false">
       <span class="error-text" id="class-name-error" hidden>Type a name for the class.</span>
     </div>
     <div class="dialog-actions">

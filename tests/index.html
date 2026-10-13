@@ -342,6 +342,12 @@ function defineStaticTests(test, html) {
     var m = /var KEY = '([^']+)'/.exec(script('app'));
     a.ok(m && /^cis-report-comment-names:v\d+$/.test(m[1]), 'key: ' + (m && m[1]));
   });
+  test(G, 'Spell checking is off on the page and in every text box', function (a) {
+    a.ok(/<html[^>]*spellcheck="false"/.test(html), 'not off on <html>');
+    var boxes = html.match(/<(?:input type="text"|textarea)[^>]*>/g) || [];
+    a.ok(boxes.length > 0, 'no text boxes found');
+    boxes.forEach(function (b) { a.ok(b.indexOf('spellcheck="false"') !== -1, 'spell check on: ' + b); });
+  });
   test(G, 'Engine has no DOM or storage code', function (a) {
     var engine = script('engine');
     ['document.', 'localStorage', 'navigator.'].forEach(function (w) { a.ok(engine.indexOf(w) === -1, 'engine mentions ' + w); });
