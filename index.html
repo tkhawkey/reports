@@ -1,0 +1,1563 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<!--
+  Privacy: this policy stops the page from making any network connection.
+  Scripts and styles must be inline, fonts and images must be embedded,
+  and fetch, XHR, WebSockets, beacons and form submissions are all blocked.
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; worker-src 'none'; manifest-src 'none'; media-src 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Report comment names</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23002199'/%3E%3C/svg%3E">
+<style>
+/* ---------- CIS design tokens (from the CIS Design System) ---------- */
+:root {
+  --cis-blue: #002199;
+  --cis-blue-shade-1: #001A7A;
+  --cis-blue-shade-3: #000D3D;
+  --cis-blue-tint-1: #2744AD;
+  --cis-blue-tint-2: #4E67C2;
+  --cis-blue-tint-3: #7489D6;
+  --cis-lavender: #DACCF5;
+  --cis-lavender-tint-1: #E1D6F7;
+  --cis-lavender-tint-2: #E9E0F9;
+  --cis-lavender-tint-3: #F0EBFB;
+  --cis-green: #06B820;
+  --cis-green-shade-2: #047314;
+  --cis-green-shade-3: #02500E;
+  --cis-white: #FFFFFF;
+  --cis-paper: #F4F4F4;
+
+  --text-body: var(--cis-blue);
+  --text-muted: var(--cis-blue-tint-2);
+  --border-input: var(--cis-blue-tint-3);
+  --status-warning: #B26A00;
+  --status-danger: #C21E3A;
+  --warn-bg: #FFF1D6;
+  --warn-text: #7A4800;
+
+  --font-brand: 'Sitka Text', 'Sitka Small', Georgia, serif;
+  --fw-regular: 400;
+  --fw-bold: 700;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 16px; --radius-pill: 999px;
+  --border-w: 2px;
+  --shadow-float: 0 8px 24px rgba(0, 13, 61, .18);
+  --ease-out: cubic-bezier(.2, .7, .2, 1);
+  --dur-fast: 120ms;
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--text-body);
+  background: var(--cis-white);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: lining-nums;
+}
+h1, h2, h3, p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+:focus-visible { outline: 3px solid var(--cis-blue); outline-offset: 2px; }
+.muted { color: var(--text-muted); }
+
+.page { max-width: 1160px; margin: 0 auto; padding: var(--space-5) var(--space-5) var(--space-7); }
+
+/* ---------- Header ---------- */
+.site-head { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-5); }
+.site-head img { width: 64px; height: auto; flex: none; }
+.site-head h1 { font-size: 32px; font-weight: var(--fw-bold); line-height: 1.1; }
+.site-head p { margin-top: var(--space-1); font-size: 17px; }
+
+/* ---------- Prompt line panel ---------- */
+.prompt-panel {
+  display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap;
+  background: var(--cis-lavender-tint-3);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.prompt-panel h2 { font-size: 15px; font-weight: var(--fw-bold); flex: 0 0 100%; }
+.prompt-panel blockquote { margin: 0; flex: 1 1 420px; font-size: 15px; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  min-height: 42px; padding: 0 20px;
+  border-radius: var(--radius-pill);
+  border: var(--border-w) solid transparent;
+  font-weight: var(--fw-bold); font-size: 16px; line-height: 1;
+  cursor: pointer; white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.btn:active:not(:disabled) { transform: scale(.97); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary { background: var(--cis-green-shade-2); color: var(--cis-white); }
+.btn-primary:hover:not(:disabled) { background: var(--cis-green-shade-3); }
+.btn-brand { background: var(--cis-blue); color: var(--cis-white); }
+.btn-brand:hover:not(:disabled) { background: var(--cis-blue-shade-1); }
+.btn-secondary { background: transparent; color: var(--cis-blue); border-color: var(--cis-blue); }
+.btn-secondary:hover:not(:disabled) { background: var(--cis-lavender-tint-3); }
+.btn-ghost { background: transparent; color: var(--cis-blue); }
+.btn-ghost:hover:not(:disabled) { background: var(--cis-lavender-tint-3); }
+.btn-danger { background: var(--status-danger); color: var(--cis-white); }
+.btn-danger:hover:not(:disabled) { background: #9E1830; }
+.btn-danger-outline { background: transparent; color: var(--status-danger); border-color: var(--status-danger); }
+.btn-danger-outline:hover:not(:disabled) { background: #FCEBEE; }
+.btn-sm { min-height: 34px; padding: 0 14px; font-size: 14px; gap: 8px; }
+.btn.is-done { background: var(--cis-blue); }
+
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; flex: none;
+  border: 0; border-radius: 50%;
+  background: transparent; color: var(--cis-blue); cursor: pointer;
+}
+.icon-btn:hover { background: var(--cis-lavender-tint-2); }
+.icon-btn svg { width: 18px; height: 18px; }
+
+/* ---------- Tabs ---------- */
+.tabs { display: flex; gap: var(--space-6); border-bottom: 1px solid var(--border-input); margin-bottom: var(--space-5); }
+.tab {
+  background: none; border: 0; padding: 12px 0; margin-bottom: -1px;
+  font-size: 18px; color: var(--cis-blue); cursor: pointer;
+  border-bottom: 4px solid transparent;
+}
+.tab[aria-selected="true"] { font-weight: var(--fw-bold); border-bottom-color: var(--cis-green-shade-2); }
+.tab:hover { border-bottom-color: var(--cis-lavender); }
+.tab[aria-selected="true"]:hover { border-bottom-color: var(--cis-green-shade-2); }
+
+/* ---------- Form fields ---------- */
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-4); }
+.field label, .field legend, .label { font-weight: var(--fw-bold); font-size: 15px; }
+.hint { font-size: 14px; color: var(--text-muted); }
+input[type="text"], select, textarea {
+  width: 100%;
+  border: var(--border-w) solid var(--border-input);
+  border-radius: var(--radius-md);
+  background: var(--cis-white);
+  color: var(--cis-blue);
+  font-size: 16px;
+}
+input[type="text"], select { height: 44px; padding: 0 14px; }
+select { cursor: pointer; }
+textarea { padding: 12px 14px; line-height: 1.5; resize: vertical; min-height: 150px; }
+input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--cis-blue); }
+input:disabled, select:disabled, textarea:disabled { background: var(--cis-paper); cursor: not-allowed; }
+::placeholder { color: var(--text-muted); opacity: 1; }
+
+fieldset { border: 0; padding: 0; margin: 0 0 var(--space-4); }
+fieldset legend { padding: 0; margin-bottom: 8px; font-weight: var(--fw-bold); font-size: 15px; }
+.radio-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.radio-pill { position: relative; }
+.radio-pill input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.radio-pill span {
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 18px;
+  border: var(--border-w) solid var(--border-input); border-radius: var(--radius-pill);
+  background: var(--cis-white); cursor: pointer;
+}
+.radio-pill input:checked + span { background: var(--cis-blue); border-color: var(--cis-blue); color: var(--cis-white); font-weight: var(--fw-bold); }
+.radio-pill input:focus-visible + span { outline: 3px solid var(--cis-blue); outline-offset: 2px; }
+.radio-pill input:hover:not(:checked) + span { background: var(--cis-lavender-tint-3); }
+
+/* ---------- Layouts ---------- */
+.quick-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-6); align-items: start; }
+.panel-note { font-size: 15px; margin-bottom: var(--space-4); }
+.row-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; }
+
+/* ---------- Output panel (shared by both modes) ---------- */
+.output h3 { font-size: 15px; font-weight: var(--fw-bold); margin-bottom: 6px; }
+.output-text {
+  min-height: 170px;
+  padding: 14px 16px;
+  border: var(--border-w) solid var(--cis-blue);
+  border-radius: var(--radius-md);
+  font-size: 17px; line-height: 1.6;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.output-text.is-empty { color: var(--text-muted); }
+.output-text .filled { background: var(--cis-lavender-tint-2); border-radius: 3px; box-shadow: 0 0 0 2px var(--cis-lavender-tint-2); }
+.output-text mark {
+  background: var(--warn-bg); color: inherit;
+  border-bottom: 3px solid var(--status-warning);
+}
+.output-text mark .filled { background: transparent; box-shadow: none; }
+.output-key { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+.issue-list { margin: var(--space-3) 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.issue-list li { font-size: 14px; color: var(--warn-text); padding-left: 14px; position: relative; }
+.issue-list li::before { content: ""; position: absolute; left: 0; top: .6em; width: 6px; height: 6px; border-radius: 50%; background: var(--status-warning); }
+.issue-list q { font-weight: var(--fw-bold); quotes: "\201C" "\201D"; }
+.output-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); flex-wrap: wrap; }
+.char-count { font-size: 15px; }
+.foot-actions { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.check-badge {
+  display: inline-flex; align-items: center; min-height: 28px; padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--warn-bg); color: var(--warn-text);
+  font-weight: var(--fw-bold); font-size: 14px;
+}
+
+/* ---------- My classes ---------- */
+.class-bar { display: flex; align-items: flex-end; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-5); }
+.class-bar .field { margin: 0; min-width: 240px; }
+.class-bar .spacer { flex: 1; }
+.class-grid { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: var(--space-6); align-items: start; }
+
+.side { position: sticky; top: var(--space-4); }
+.side-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-2); }
+.side-head h3 { font-size: 18px; font-weight: var(--fw-bold); }
+.progress { font-size: 14px; color: var(--text-muted); }
+.pupil-list {
+  list-style: none; margin: 0 0 var(--space-3); padding: 4px;
+  max-height: calc(100vh - 240px); min-height: 80px; overflow-y: auto;
+  border: 1px solid var(--cis-lavender); border-radius: var(--radius-md);
+}
+.pupil-list li { display: flex; align-items: center; gap: 2px; }
+.pupil-btn {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 8px;
+  min-height: 40px; padding: 6px 10px;
+  border: 0; border-radius: var(--radius-sm);
+  background: transparent; text-align: left; cursor: pointer;
+}
+.pupil-btn:hover { background: var(--cis-lavender-tint-3); }
+.pupil-btn[aria-pressed="true"] { background: var(--cis-blue); color: var(--cis-white); font-weight: var(--fw-bold); }
+.pupil-btn .tick { width: 18px; height: 18px; flex: none; color: var(--cis-green-shade-2); }
+.pupil-btn[aria-pressed="true"] .tick { color: var(--cis-white); }
+.pupil-btn .pupil-name { overflow-wrap: anywhere; }
+.pupil-btn .pupil-use { font-size: 14px; opacity: .85; white-space: nowrap; }
+.pupil-btn.is-done:not([aria-pressed="true"]) .pupil-name { color: var(--text-muted); }
+.side-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+.banner {
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-4);
+  background: var(--cis-lavender-tint-3);
+}
+.banner.is-active { background: var(--cis-blue); color: var(--cis-white); }
+.banner-label { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; font-weight: var(--fw-bold); }
+.banner-name { font-size: 40px; font-weight: var(--fw-bold); line-height: 1.1; margin-top: 2px; overflow-wrap: anywhere; }
+.banner-detail { font-size: 17px; margin-top: 4px; }
+.banner-done { display: inline-flex; align-items: center; gap: 6px; margin-left: var(--space-3); font-size: 15px; font-weight: var(--fw-bold); }
+.banner-done svg { width: 18px; height: 18px; }
+.work-actions { display: flex; justify-content: flex-end; margin-top: var(--space-4); }
+
+.empty-state { padding: var(--space-6); border-radius: var(--radius-md); background: var(--cis-lavender-tint-3); }
+.empty-state h3 { font-size: 22px; margin-bottom: var(--space-2); }
+.empty-state p { margin-bottom: var(--space-4); }
+
+.privacy {
+  margin-top: var(--space-7); padding-top: var(--space-4);
+  border-top: 1px solid var(--cis-lavender);
+  display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap;
+}
+.privacy p { font-size: 15px; max-width: 70ch; }
+.notice { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: #FCEBEE; color: var(--status-danger); font-weight: var(--fw-bold); }
+
+/* ---------- Dialogs ---------- */
+dialog {
+  width: min(520px, calc(100vw - 32px));
+  border: 0; border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  color: var(--cis-blue);
+  box-shadow: var(--shadow-float);
+}
+dialog.wide { width: min(880px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(0, 13, 61, .55); }
+dialog h2 { font-size: 26px; font-weight: var(--fw-bold); line-height: 1.15; margin-bottom: var(--space-3); }
+dialog p { margin-bottom: var(--space-4); }
+.dialog-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-5); align-items: center; }
+.dialog-actions .spacer { flex: 1; }
+.error-text { color: var(--status-danger); font-size: 14px; font-weight: var(--fw-bold); }
+
+.preview-wrap { max-height: 46vh; overflow: auto; border: 1px solid var(--cis-lavender); border-radius: var(--radius-md); margin-top: var(--space-4); }
+.preview-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.preview-table th, .preview-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--cis-lavender-tint-1); vertical-align: middle; }
+.preview-table th { position: sticky; top: 0; background: var(--cis-lavender-tint-3); font-weight: var(--fw-bold); }
+.preview-table input[type="text"], .preview-table select { height: 36px; font-size: 15px; padding: 0 8px; }
+.preview-table tr.is-skipped td { color: var(--text-muted); }
+.row-status { font-size: 14px; }
+.row-status.bad { color: var(--status-danger); font-weight: var(--fw-bold); }
+.paste-summary { margin-top: var(--space-3); font-size: 15px; }
+
+/* ---------- Narrow screens ---------- */
+@media (max-width: 860px) {
+  .page { padding: var(--space-4) var(--space-4) var(--space-6); }
+  .quick-grid, .class-grid { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; }
+  .pupil-list { max-height: 300px; }
+  .banner-name { font-size: 32px; }
+  .tabs { gap: var(--space-5); }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="site-head">
+    <img alt="" src="data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjEwMCAwIDMyNCAzODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGNsaXBQYXRoIGlkPSJjbGlwcGF0aDAiIHRyYW5zZm9ybT0iIj48cGF0aCBkPSJNIDAgNjUwLjc2NiBMIDUyMy43MjUgNjUwLjc2NiBMIDUyMy43MjUgMCBMIDAgMCBaIiBmaWxsPSJub25lIiBjbGlwLXJ1bGU9Im5vbnplcm8iPjwvcGF0aD48L2NsaXBQYXRoPjwvZGVmcz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAtMSAwIDY1MC43NjYpIj48ZyB0cmFuc2Zvcm09IiI+PHBhdGggZD0iTSAwIDY1MC43NjYgTCA1MjMuNzI1IDY1MC43NjYgTCA1MjMuNzI1IDAgTCAwIDAgWiIgZmlsbD0ibm9uZSI+PC9wYXRoPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODkuNzY0MyAxNzQuMjczNCkiPjxwYXRoIGQ9Ik0gMCAwIEMgLTkuMDU0IDAgLTE1LjU5MyA3LjA4NCAtMTUuNTkzIDE4LjQ3OSBDIC0xNS41OTMgMjguMzE4IC05LjYxNiAzNC41ODMgLTEuNDQ1IDM0LjU4MyBDIDQuOTY5IDM0LjU4MyA5LjQyOSAzMS41MTcgMTEuNTY5IDI1LjMxMyBMIDE0Ljg0MyAyNS42ODYgTCAxMy43NzMgMzUuODk5IEMgOS42MjUgMzcuOTA4IDQuNjU2IDM5LjM0OCAtMC45MzcgMzkuMzQ4IEMgLTE2LjU5MiAzOS4zNDggLTI1LjgzMyAyOS40NDYgLTI1LjgzMyAxNi4zNTUgQyAtMjUuODMzIDMuMjYyIC0xNi4wMjEgLTQuNzY0IC0xLjQ5OSAtNC43NjQgQyA0LjkxNSAtNC43NjQgOS42MzQgLTMuNDQ5IDEzLjkwNyAtMS4wMDQgTCAxNC45MTUgOS4wODMgTCAxMS43NzUgOS4zOTQgQyA5LjU3MSAyLjg3OSA2LjMwNyAwIDAuMDE4IDAgWiIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTIxLjg0MTMgMTg2LjExOTgpIj48cGF0aCBkPSJNIDAgMCBMIDYuNTM5IDE1LjIyNyBMIDEzLjIwMiAwIFogTSAyNy45ODMgLTEwLjU5NCBMIDExLjQ0NSAyNi43NDUgTCA3LjEwOSAyNi43NDUgTCAtNy4xMDEgLTUuMDgzIEMgLTEwLjExNiAtMTEuOTA5IC0xMC40MzcgLTExLjg0NiAtMTUuMDIyIC0xMi41NCBMIC0xNC43MDkgLTE1Ljg2NCBMIC0xLjE4NiAtMTUuODY0IEwgLTAuODc0IC0xMi41NCBMIC0zLjcwMiAtMTIuMjkyIEMgLTUuMDIyIC0xMi4xNjcgLTUuMDg1IC0xMS44NTYgLTQuNTIzIC0xMC42MDMgTCAtMS43NTcgLTQuMDg4IEwgMTUuMDMxIC00LjA4OCBMIDE1LjQ2OCAtNS4wOTMgQyAxOC40MiAtMTEuOTE5IDE4Ljc0MSAtMTEuODU2IDE0LjIxIC0xMi41NSBMIDE0LjUyMiAtMTUuODc0IEwgMzMuMDY3IC0xNS44NzQgTCAzMy4zNzkgLTEyLjU1IEwgMzAuNTUyIC0xMi4zIEMgMjkuMjMyIC0xMi4xNzcgMjguNDczIC0xMS44NjYgMjcuOTc0IC0xMC42MTEgWiIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjEyLjcxMjUgMTc1LjY1MTIpIj48cGF0aCBkPSJNIDAgMCBMIC0yLjk1MyAyNS44MTEgQyAtMy43NzQgMzMuMjA2IC0zLjg5OSAzMy4yMDYgMC42OTYgMzMuOTUyIEwgMC4zODMgMzcuMjE0IEwgLTEyLjgyIDM3LjIxNCBMIC0yNS40NTkgNy44MyBMIC0zNy45NzQgMzcuMjE0IEwgLTUxLjg3MiAzNy4yMTQgTCAtNTIuMTg0IDMzLjk1MiBMIC00OS4yOTQgMzMuNzA0IEMgLTQ3Ljk3MyAzMy41MTYgLTQ3LjcyNCAzMy4xNDMgLTQ3Ljg0OSAzMS44MjggTCAtNTAuODAxIDYuMDE3IEMgLTUxLjYyMiAtMS4zNzggLTUxLjY4NCAtMS4zNzggLTU2LjI2OSAtMi4wNjQgTCAtNTUuOTU3IC01LjM4OCBMIC00Mi41NjggLTUuMzg4IEwgLTQyLjI1NiAtMi4wNjQgTCAtNDUuMTQ2IC0xLjgxMyBDIC00Ni40NjYgLTEuNjkgLTQ2LjcxNiAtMS4zMTcgLTQ2LjU5MSAwIEwgLTQzLjM3OSAyNi4zOCBMIC0zMC4wNTMgLTUuMzg4IEwgLTI1Ljc4IC01LjM4OCBMIC0xMi43NjUgMjUuODgxIEwgLTEwLjQzNyA2LjAxNyBDIC05LjYxNyAtMS4zNzggLTkuNDkyIC0xLjM3OCAtMTQuMDg2IC0yLjA2NCBMIC0xMy43NzMgLTUuMzg4IEwgNC40NTkgLTUuMzg4IEwgNC43NzIgLTIuMDY0IEwgMS45NDQgLTEuODEzIEMgMC42MjMgLTEuNjkgMC4xMjUgLTEuMzE3IDAgMCIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjM4LjYyNTIgMTc0LjUyMTYpIj48cGF0aCBkPSJNIDAgMCBMIC0zLjk2MSAwIEwgLTMuOTYxIDE0Ljk3NyBMIDEuMDcxIDE0Ljk3NyBDIDYuMjI2IDE0Ljk3NyA5LjQzNyAxMi4zNDcgOS40MzcgNy41ODIgQyA5LjQzNyAyLjgxOCA1Ljg1MSAwIDAuMDEgMCBaIE0gLTMuOTYxIDM0LjA4NyBMIC0xLjM4MiAzNC4wODcgQyA0LjIxMSAzNC4wODcgNy4yOTcgMzEuNTggNy4yOTcgMjYuNjMgQyA3LjI5NyAyMi40MzQgNC43MTkgMTguODYgLTAuNTYxIDE4Ljg2IEwgLTMuOTYxIDE4Ljg2IFogTSA4LjgwNCAxOC42MTIgQyAxMy45NjEgMjAuMTc3IDE2Ljg1MSAyMy40MzkgMTYuODUxIDI3Ljg4MyBDIDE2Ljg1MSAzNC40NiAxMS4yNTggMzguMzQzIDAuNSAzOC4zNDMgTCAtMTguMDQ1IDM4LjM0MyBMIC0xOC4zNTggMzUuMDgyIEwgLTE1LjQwNSAzNC44MzQgQyAtMTQuMDIzIDM0LjY0NiAtMTMuNjQ4IDM0LjI3MyAtMTMuNjQ4IDMyLjk1OCBMIC0xMy42NDggNy4yMDkgQyAtMTMuNjQ4IDIuMjM4IC0xNS4yMjEgLTAuNDc3IC0xOC4zNjggLTAuOTM0IEwgLTE4LjA1NSAtNC4yNTggTCAwLjc1IC00LjI1OCBDIDEyLjU2OSAtNC4yNTggMTkuNjc5IDAuMTI1IDE5LjY3OSA3Ljk2MyBDIDE5LjY3OSAxMy44NTcgMTUuMjEgMTcuNjggOC44MDQgMTguNjEyIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyODAuMTkzIDE5MS40NDUpIj48cGF0aCBkPSJNIDAgMCBMIC0zLjcwOSAwIEwgLTMuNzcyIDE2LjkxNCBMIC0wLjA2MyAxNi45MTQgQyA2LjE2NSAxNi45MTQgOS4yNDEgMTMuOTczIDkuMjQxIDguNTE0IEMgOS4yNDEgMy4wNTggNi4xMDMgLTAuMDEgMCAtMC4wMSBaIE0gMTguOTMgLTE2LjE2NyBMIDkuNjI2IC0yLjYzIEMgMTUuNzI3IC0wLjc1NiAxOC45OTMgMy4zODcgMTguOTkzIDkuMzk0IEMgMTguOTkzIDE3LjIyNiAxMy4wNzcgMjEuNDIgMi4xNDIgMjEuNDIgTCAtMTcuOTIgMjEuNDIgTCAtMTguMjMzIDE4LjE1OCBMIC0xNS4yMTcgMTcuOTEgQyAtMTMuODM0IDE3LjcyMyAtMTMuNDYxIDE3LjM0OSAtMTMuNDYxIDE2LjAzNCBMIC0xMy40NjEgLTkuODM5IEMgLTEzLjQ2MSAtMTQuNzI5IC0xNS4wMzQgLTE3LjQgLTE4LjE3OCAtMTcuODU3IEwgLTE3Ljg2NyAtMjEuMTgyIEwgMC44MTMgLTIxLjE4MiBMIDEuMTI2IC0xNy45MTggTCAtMS44MjcgLTE3LjY3IEMgLTMuMjExIC0xNy40ODQgLTMuNjQ4IC0xNy4xMTEgLTMuNjQ4IC0xNS43OTQgTCAtMy42NDggLTMuODkzIEwgLTAuMjQ4IC0zLjg5MyBMIDEwLjg4MyAtMjEuMTg5IEwgMjIuNzAyIC0yMS4xODkgTCAyMi44ODkgLTE3Ljg2NSBMIDIxLjE5NSAtMTcuNjE3IEMgMjAuMzc0IC0xNy40OTIgMTkuNjg5IC0xNy4yNDQgMTguOTMgLTE2LjE3NyBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMjAuMTI4OSAxNzUuNzExNykiPjxwYXRoIGQ9Ik0gMCAwIEwgMCA1Ljg5NCBMIC0wLjE4NiAyNS44MjEgQyAtMC4xODYgMzAuNzEgMS40MDcgMzMuMzgyIDQuNTk0IDMzLjgzOSBMIDQuMjgyIDM3LjE2MyBMIC0xNC4zOTcgMzcuMSBMIC0xNC43MDkgMzMuNzc2IEwgLTExLjc1NiAzMy41MjggQyAtMTAuMzczIDMzLjQ2NiAtMTAgMzMuMDMgLTEwIDMxLjcxNSBMIC0xMCAyNS44MjEgTCAtOS44MTIgNS44OTQgQyAtOS44MTIgMS4wMDQgLTExLjQwNSAtMS42NjcgLTE0LjU5MiAtMi4xMjQgTCAtMTQuMjgxIC01LjQ0OCBMIDQuMzg5IC01LjM4NiBMIDQuNzAyIC0yLjA2MiBMIDEuNzQ5IC0xLjgxMiBDIDAuMzY3IC0xLjc1MSAtMC4wMDggLTEuMzE1IC0wLjAwOCAwIFoiIGZpbGw9IiMwMDIxOTkiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L2c+PGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXBwYXRoMCkiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM0Ni40NzkzIDE3NC43Nzk2KSI+PHBhdGggZD0iTSAwIDAgTCAtMy44OTkgMCBMIC0zLjg5OSAzMy41NzkgTCAwLjgyMSAzMy41NzkgQyAxMC43NTggMzMuNTc5IDE2LjcyNiAyNy4xODkgMTYuNzI2IDE2LjY2NSBDIDE2LjcyNiA2LjE0MiAxMC4zNzUgMCAwIDAgTSAxLjQ0NiAzOC4wODUgTCAtMTcuNzk1IDM4LjA4NSBMIC0xOC4xMDggMzQuODI0IEwgLTE1LjI4IDM0LjU3NiBDIC0xMy45NTkgMzQuMzg4IC0xMy41ODYgMzQuMDE1IC0xMy41ODYgMzIuNyBMIC0xMy41ODYgNi45NTEgQyAtMTMuNTg2IDEuOTggLTE1LjA5MiAtMC43MzUgLTE4LjEwOCAtMS4xOTIgTCAtMTcuNzk1IC00LjUxNiBMIC0wLjYzMyAtNC41MTYgQyAxNi41MjkgLTQuNTE2IDI2Ljk3NiA0LjA3MSAyNi45NzYgMTguMjI5IEMgMjYuOTc2IDMwLjU3NSAxNy4zNTkgMzguMDk1IDEuNDQ2IDM4LjA5NSBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MDMuMTQxMyAxOTEuMzgyNSkiPjxwYXRoIGQ9Ik0gMCAwIEwgLTAuMzEzIC0zLjMyNCBMIDIuNTc4IC0zLjU3MiBDIDMuODk5IC0zLjY5NyA0LjI3MiAtNC4xMzMgNC4yNzIgLTUuNDQ4IEwgNC4yNzIgLTE2LjE1OSBDIDIuNzY1IC0xNi42NTYgMS4xMzMgLTE2Ljg0MyAtMC44ODMgLTE2Ljg0MyBDIC05LjI1MSAtMTYuODQzIC0xNS43ODggLTkuODMgLTE1Ljc4OCAxLjM4NyBDIC0xNS43ODggMTEuMjI3IC05LjgxMiAxNy40OTIgLTEuNjQyIDE3LjQ5MiBDIDQuMzk3IDE3LjQ5MiA4LjYwOCAxNC40MjYgMTAuNjIzIDguMjIxIEwgMTMuODk4IDguNTk1IEwgMTIuNzY1IDE4Ljg3IEMgOC44NjYgMjAuODc5IDQuMTQ5IDIyLjI1NiAtMS4xMzMgMjIuMjU2IEMgLTE2Ljc4OSAyMi4yNTYgLTI2LjAzIDEyLjM1NCAtMjYuMDMgLTAuNzM3IEMgLTI2LjAzIC0xMy44MyAtMTYuMjE4IC0yMS44NTYgLTEuNjk0IC0yMS44NTYgQyA0LjU5NCAtMjEuODU2IDkuNTYyIC0yMC40NzggMTMuODk4IC0xNy43ODUgTCAxMy44OTggLTExLjQ1NyBDIDEzLjg5OCAtNi40ODYgMTUuNDI4IC0zLjc3MiAxOC40OTMgLTMuMzE0IEwgMTguMTggMC4wMSBMIDAuMDEgMC4wMSBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NTYuNzE1NyAxODEuOTc4OSkiPjxwYXRoIGQ9Ik0gMCAwIEwgLTEuOTUyIC00Ljg4OSBDIC0yLjcxIC02LjcwMSAtMy4zMzYgLTcuMjA5IC01LjY2MyAtNy4yMDkgTCAtMTcuOTkyIC03LjIwOSBMIC0xNy45OTIgOC4yNjYgTCAtMi41ODcgNi43NjMgTCAtMi41ODcgMTMuMDMxIEwgLTE3Ljk5MiAxMS41OSBMIC0xNy45OTIgMjYuMzggTCAtNi42NzIgMjYuMzggQyAtNC4zNDQgMjYuMzggLTMuNzE5IDI1Ljg4MyAtMi45NjEgMjQuMDYgTCAtMS4wMDggMTkuMTczIEwgMi4wNjkgMTkuNTQ2IEwgMS4wNjEgMzEuMTk5IEMgLTEuOTUyIDMxLjAxMSAtNC44NTIgMzAuODg2IC03Ljg2OCAzMC44ODYgTCAtMzIuMDc2IDMwLjg4NiBMIC0zMi4zODkgMjcuNjI1IEwgLTI5LjQzNiAyNy4zNzYgQyAtMjguMDU0IDI3LjE4OSAtMjcuNjc5IDI2LjgxNiAtMjcuNjc5IDI1LjUgTCAtMjcuNjc5IC0wLjI0OCBDIC0yNy42NzkgLTUuMjIgLTI5LjI1MiAtNy45MzQgLTMyLjM5OSAtOC4zOTEgTCAtMzIuMDg2IC0xMS43MTUgTCAtNi44NjkgLTExLjcxNSBDIC0zLjg1NCAtMTEuNzE1IC0wLjg5MSAtMTEuODM5IDIuMDYyIC0xMi4wMjYgTCAzLjA2OCAtMC4zNzMgTCAtMC4wMDggMCBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNC43MDk1IDExOS4xMTIzKSI+PHBhdGggZD0iTSAwIDAgTCAwIDUuODkyIEwgLTAuMTg3IDI1LjgyMSBDIC0wLjE4NyAzMC43MDggMS40MDYgMzMuMzgyIDQuNTk0IDMzLjgzNyBMIDQuMjgyIDM3LjE2MSBMIC0xNC4zOTcgMzcuMDk5IEwgLTE0LjcwOSAzMy43NzQgTCAtMTEuNzU3IDMzLjUyNiBDIC0xMC4zNzQgMzMuNDY0IC0xMCAzMy4wMjggLTEwIDMxLjcxMyBMIC0xMCAyNS44MjEgTCAtOS44MTIgNS44OTIgQyAtOS44MTIgMS4wMDQgLTExLjQwNiAtMS42NjkgLTE0LjU5NCAtMi4xMjQgTCAtMTQuMjgxIC01LjQ0OCBMIDQuMzg5IC01LjM4NiBMIDQuNzAxIC0yLjA2MiBMIDEuNzQ4IC0xLjgxMyBDIDAuMzY2IC0xLjc1MSAtMC4wMDkgLTEuMzE1IC0wLjAwOSAwIFoiIGZpbGw9IiMwMDIxOTkiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L2c+PGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXBwYXRoMCkiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDU0LjE0NiAxNTYuMjY1NSkiPjxwYXRoIGQ9Ik0gMCAwIEwgLTAuMzEyIC0zLjI2MiBMIDIuOTYxIC0zLjUxMiBDIDQuNDY5IC0zLjY5NyA0LjkxNSAtNC4wNzEgNC45MTUgLTUuMzg4IEwgNC45MTUgLTI3LjU2NCBMIC0xNy40MTIgMC4wMDggTCAtMzAuOTM1IDAuMDA4IEwgLTMxLjMxIC0zLjI1NCBMIC0yOC4wMzYgLTMuNTAyIEMgLTI2LjUyOSAtMy42OSAtMjYuMDgzIC00LjA2MyAtMjYuMDgzIC01LjM3OCBMIC0yNi4wODMgLTMxLjEyNiBDIC0yNi4wODMgLTM2LjA5OCAtMjcuODIyIC0zOC44MTIgLTMxLjMwMSAtMzkuMjcgTCAtMzAuOTI3IC00Mi41OTQgTCAtMTYuMjE3IC00Mi41OTQgTCAtMTUuOTA1IC0zOS4yNyBMIC0xOS4xNzggLTM5LjAxOSBDIC0yMC42ODYgLTM4Ljg5NiAtMjEuMTMyIC0zOC40NjEgLTIxLjEzMiAtMzcuMTQ1IEwgLTIxLjEzMiAtMTAuMDE3IEwgNS41MzEgLTQyLjYwMiBMIDkuODY2IC00Mi42MDIgTCA5Ljg2NiAtMTEuNDY3IEMgOS44NjYgLTYuNDk2IDExLjYwNSAtMy43NiAxNS4wODQgLTMuMjYyIEwgMTQuNzA5IDAgWiIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOTguNjY2NyAxNTYuMjY1NSkiPjxwYXRoIGQ9Ik0gMCAwIEwgLTE3Ljg1OCAwIEMgLTIwLjg3MyAwIC0yMy43NzIgMC4xMjMgLTI2Ljc4OCAwLjMxMSBMIC0yNy43OTYgLTExLjM0MiBMIC0yNC43MTggLTExLjcxNSBMIC0yMi43NjQgLTYuODI2IEMgLTIyLjAwNiAtNS4wMTMgLTIxLjM4MiAtNC41MDYgLTE5LjA1NCAtNC41MDYgTCAtMTMuNzczIC00LjUwNiBMIC0xMy43NzMgLTMxLjI2MSBDIC0xMy43NzMgLTM2LjE0OSAtMTUuMzQ2IC0zOC44MjIgLTE4LjQ5MiAtMzkuMjc3IEwgLTE4LjE4IC00Mi42MDIgTCAwLjQ5OSAtNDIuNjAyIEwgMC44MTIgLTM5LjM0IEwgLTIuMTQxIC0zOS4wOTIgQyAtMy41MjQgLTM4LjkwNCAtMy45NjEgLTM4LjUyMyAtMy45NjEgLTM3LjIxNiBMIC0zLjk2MSAtMzEuMjYxIEwgLTQuMDg1IC00LjUwNiBMIDEuMTk1IC00LjUwNiBDIDMuNTIzIC00LjUwNiA0LjE0OCAtNS4wMDUgNC45MDYgLTYuODI2IEwgNi44NTEgLTExLjcxNSBMIDkuOTI4IC0xMS4zNDIgTCA4LjkyIDAuMzExIEMgNS45NjggMC4xMjMgMy4wMDYgMCAtMC4wMDkgMCBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNDEuMTgwNiAxMjAuNDkpIj48cGF0aCBkPSJNIDAgMCBDIC0wLjc1OCAtMS44MTQgLTEuMzgzIC0yLjMyIC0zLjcxMSAtMi4zMiBMIC0xNi4wMzkgLTIuMzIgTCAtMTYuMDM5IDEzLjE1NCBMIC0wLjYzMyAxMS42NTMgTCAtMC42MzMgMTcuOTE4IEwgLTE2LjAzOSAxNi40NzggTCAtMTYuMDM5IDMxLjI2OSBMIC00LjcxOSAzMS4yNjkgQyAtMi4zOTEgMzEuMjY5IC0xLjc2NiAzMC43NzEgLTEuMDA4IDI4Ljk0OSBMIDAuOTQ1IDI0LjA2IEwgNC4wMzIgMjQuNDMzIEwgMy4wMjQgMzYuMDg2IEMgMC4wMDkgMzUuODk5IC0yLjg5IDM1Ljc3NSAtNS45MDUgMzUuNzc1IEwgLTMwLjExNSAzNS43NzUgTCAtMzAuNDI3IDMyLjUxNCBMIC0yNy40NzQgMzIuMjY0IEMgLTI2LjA5MiAzMi4wNzggLTI1LjcxNyAzMS43MDUgLTI1LjcxNyAzMC4zODggTCAtMjUuNzE3IDQuNjM5IEMgLTI1LjcxNyAtMC4zMzIgLTI3LjI5IC0zLjA0NyAtMzAuNDM2IC0zLjUwMiBMIC0zMC4xMjQgLTYuODI2IEwgLTQuOTA2IC02LjgyNiBDIC0xLjg5MSAtNi44MjYgMS4wNyAtNi45NTEgNC4wMjMgLTcuMTM3IEwgNS4wMzEgNC41MTQgTCAxLjk1MyA0Ljg4NyBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNjguMDkzMSAxMzQuODM1OCkiPjxwYXRoIGQ9Ik0gMCAwIEwgLTMuNzExIDAgTCAtMy43NzMgMTYuOTE0IEwgLTAuMDYyIDE2LjkxNCBDIDYuMTY0IDE2LjkxNCA5LjI0MSAxMy45NzMgOS4yNDEgOC41MTQgQyA5LjI0MSAzLjA1NiA2LjEwMiAtMC4wMSAwIC0wLjAxIFogTSAxOC45MjkgLTE2LjE2OSBMIDkuNjI1IC0yLjYzMiBDIDE1LjcyNiAtMC43NTYgMTguOTkxIDMuMzg3IDE4Ljk5MSA5LjM5NCBDIDE4Ljk5MSAxNy4yMjQgMTMuMDc3IDIxLjQyIDIuMTQxIDIxLjQyIEwgLTE3LjkyMSAyMS40MiBMIC0xOC4yMzMgMTguMTU4IEwgLTE1LjIxOCAxNy45MSBDIC0xMy44MzUgMTcuNzIzIC0xMy40NjEgMTcuMzQ5IC0xMy40NjEgMTYuMDM0IEwgLTEzLjQ2MSAtOS44MzkgQyAtMTMuNDYxIC0xNC43MjkgLTE1LjAzMyAtMTcuNCAtMTguMTc5IC0xNy44NTcgTCAtMTcuODY3IC0yMS4xODIgTCAwLjgxMiAtMjEuMTgyIEwgMS4xMjQgLTE3LjkyIEwgLTEuODI5IC0xNy42NyBDIC0zLjIxMSAtMTcuNDg0IC0zLjY0OCAtMTcuMTAxIC0zLjY0OCAtMTUuNzk2IEwgLTMuNjQ4IC0zLjg5MyBMIC0wLjI1IC0zLjg5MyBMIDEwLjg4MyAtMjEuMTg5IEwgMjIuNzAyIC0yMS4xODkgTCAyMi44ODkgLTE3Ljg2NSBMIDIxLjE5NSAtMTcuNjE3IEMgMjAuMzc0IC0xNy40OTIgMTkuNjg3IC0xNy4yNDQgMTguOTI5IC0xNi4xNzcgWiIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjM5LjMzODUgMTU2LjI2NTUpIj48cGF0aCBkPSJNIDAgMCBMIC0xNC43MDkgMCBMIC0xNS4wMjIgLTMuMjYyIEwgLTExLjc0NyAtMy41MTIgQyAtMTAuMjQgLTMuNjk3IC05Ljc5NCAtNC4wNzEgLTkuNzk0IC01LjM4OCBMIC05Ljc5NCAtMjcuNTY0IEwgLTMyLjEyMSAwLjAwOCBMIC00NS42NDQgMC4wMDggTCAtNDYuMDE5IC0zLjI1NCBMIC00Mi43NDQgLTMuNTAyIEMgLTQxLjIzNyAtMy42OSAtNDAuNzkyIC00LjA2MyAtNDAuNzkyIC01LjM3OCBMIC00MC43OTIgLTMxLjEyNiBDIC00MC43OTIgLTM2LjA5OCAtNDIuNTMxIC0zOC44MTIgLTQ2LjAxIC0zOS4yNyBMIC00NS42MzUgLTQyLjU5NCBMIC0zMC45MjUgLTQyLjU5NCBMIC0zMC42MTQgLTM5LjI3IEwgLTMzLjg4OCAtMzkuMDE5IEMgLTM1LjM5NCAtMzguODk2IC0zNS44NCAtMzguNDYxIC0zNS44NCAtMzcuMTQ1IEwgLTM1Ljg0IC0xMC4wMTcgTCAtOS4xNzkgLTQyLjYwMiBMIC00Ljg0MiAtNDIuNjAyIEwgLTQuODQyIC0xMS40NjcgQyAtNC44NDIgLTYuNDk2IC0zLjEwMyAtMy43NiAwLjM3NSAtMy4yNjIgWiIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjUzLjg2OTkgMTI5LjUxMDYpIj48cGF0aCBkPSJNIDAgMCBMIDYuNTM5IDE1LjIyNyBMIDEzLjIwMyAwIFogTSAyNy45ODIgLTEwLjU4NiBMIDExLjQ0NCAyNi43NTUgTCA3LjEwOSAyNi43NTUgTCAtNy4xIC01LjA3NSBDIC0xMC4xMTUgLTExLjkwMSAtMTAuNDM3IC0xMS44MzkgLTE1LjAyMiAtMTIuNTMyIEwgLTE0LjcwOSAtMTUuODU2IEwgLTEuMTg2IC0xNS44NTYgTCAtMC44NzQgLTEyLjUzMiBMIC0zLjcwMSAtMTIuMjgyIEMgLTUuMDIyIC0xMi4xNTkgLTUuMDg1IC0xMS44NDggLTQuNTIyIC0xMC41OTQgTCAtMS43NTcgLTQuMDc4IEwgMTUuMDMgLTQuMDc4IEwgMTUuNDY3IC01LjA4MyBDIDE4LjQyIC0xMS45MDkgMTguNzQxIC0xMS44NDggMTQuMjExIC0xMi41NCBMIDE0LjUyMiAtMTUuODY0IEwgMzMuMDY3IC0xNS44NjQgTCAzMy4zOCAtMTIuNTQgTCAzMC41NTIgLTEyLjI5MiBDIDI5LjIzMSAtMTIuMTY3IDI4LjQ3MyAtMTEuODU2IDI3Ljk3NCAtMTAuNjAzIFoiIGZpbGw9IiMwMDIxOTkiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L2c+PGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXBwYXRoMCkiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMxMS4yMjc2IDE1Ni4yNjU1KSI+PHBhdGggZD0iTSAwIDAgTCAtMTcuODU5IDAgQyAtMjAuODczIDAgLTIzLjc3MyAwLjEyMyAtMjYuNzg4IDAuMzExIEwgLTI3Ljc5NyAtMTEuMzQyIEwgLTI0LjcxOSAtMTEuNzE1IEwgLTIyLjc2NCAtNi44MjYgQyAtMjIuMDA2IC01LjAxMyAtMjEuMzgzIC00LjUwNiAtMTkuMDUzIC00LjUwNiBMIC0xMy43NzMgLTQuNTA2IEwgLTEzLjc3MyAtMzEuMjYxIEMgLTEzLjc3MyAtMzYuMTQ5IC0xNS4zNDYgLTM4LjgyMiAtMTguNDkzIC0zOS4yNzcgTCAtMTguMTggLTQyLjYwMiBMIDAuNDk4IC00Mi42MDIgTCAwLjgxMSAtMzkuMzQgTCAtMi4xNDIgLTM5LjA5MiBDIC0zLjUyMyAtMzguOTA0IC0zLjk2MSAtMzguNTIzIC0zLjk2MSAtMzcuMjE2IEwgLTMuOTYxIC0zMS4yNjEgTCAtNC4wODYgLTQuNTA2IEwgMS4xOTQgLTQuNTA2IEMgMy41MjMgLTQuNTA2IDQuMTQ3IC01LjAwNSA0LjkwNSAtNi44MjYgTCA2Ljg0OSAtMTEuNzE1IEwgOS45MzcgLTExLjM0MiBMIDguOTI5IDAuMzExIEMgNS45NzYgMC4xMjMgMy4wMTUgMCAwIDAiIGZpbGw9IiMwMDIxOTkiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L2c+PGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXBwYXRoMCkiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMzNy44OTA2IDExOS4xMTIzKSI+PHBhdGggZD0iTSAwIDAgTCAwIDUuODkyIEwgLTAuMTg4IDI1LjgyMSBDIC0wLjE4OCAzMC43MDggMS40MDUgMzMuMzgyIDQuNTkyIDMzLjgzNyBMIDQuMjgyIDM3LjE2MSBMIC0xNC4zODkgMzcuMDk5IEwgLTE0LjcwMSAzMy43NzQgTCAtMTEuNzQ5IDMzLjUyNiBDIC0xMC4zNjUgMzMuNDY0IC05Ljk5MiAzMy4wMjggLTkuOTkyIDMxLjcxMyBMIC05Ljk5MiAyNS44MjEgTCAtOS44MDQgNS44OTIgQyAtOS44MDQgMS4wMDQgLTExLjM5NyAtMS42NjkgLTE0LjU4NiAtMi4xMjQgTCAtMTQuMjczIC01LjQ0OCBMIDQuMzk3IC01LjM4NiBMIDQuNzEgLTIuMDYyIEwgMS43NTcgLTEuODEzIEMgMC4zNzMgLTEuNzUxIDAgLTEuMzE1IDAgMCIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzY5Ljc3MTQgMTE3LjQyMzkpIj48cGF0aCBkPSJNIDAgMCBDIC03Ljk4NSAwIC0xMy4zOSA3Ljg5MyAtMTMuMzkgMTkuNjA2IEMgLTEzLjM5IDI4LjgxNSAtOC45OTMgMzUuMDgyIC0xLjgyMSAzNS4wODIgQyA2LjE2NCAzNS4wODIgMTEuNTA2IDI3LjE4OSAxMS41MDYgMTUuNDczIEMgMTEuNTA2IDYuMjY1IDcuMSAwIDAgMCBNIC0wLjE4OCAzOS41ODggQyAtMTQuMTQ4IDM5LjU4OCAtMjMuNjQgMzAuMzE3IC0yMy42NCAxNi42NTYgQyAtMjMuNjQgNC4wNjEgLTE0LjcwOSAtNC41MjQgLTEuNjM0IC00LjUyNCBDIDEyLjMyNyAtNC41MjQgMjEuODE5IDQuNzQ1IDIxLjgxOSAxOC40MDcgQyAyMS44MTkgMzEuMDAxIDEyLjg5IDM5LjU4OCAtMC4xODggMzkuNTg4IiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NDEuMDg3OSAxNTYuMjY1NSkiPjxwYXRoIGQ9Ik0gMCAwIEwgLTE0LjcwOSAwIEwgLTE1LjAyMiAtMy4yNjIgTCAtMTEuNzQ5IC0zLjUxMiBDIC0xMC4yNCAtMy42OTcgLTkuNzk0IC00LjA3MSAtOS43OTQgLTUuMzg4IEwgLTkuNzk0IC0yNy41NjQgTCAtMzIuMTIxIDAuMDA4IEwgLTQ1LjY0NCAwLjAwOCBMIC00Ni4wMTkgLTMuMjU0IEwgLTQyLjc0NiAtMy41MDIgQyAtNDEuMjM3IC0zLjY5IC00MC43OTIgLTQuMDYzIC00MC43OTIgLTUuMzc4IEwgLTQwLjc5MiAtMzEuMTI2IEMgLTQwLjc5MiAtMzYuMDk4IC00Mi41MzEgLTM4LjgxMiAtNDYuMDEgLTM5LjI3IEwgLTQ1LjYzNiAtNDIuNTk0IEwgLTMwLjkyNyAtNDIuNTk0IEwgLTMwLjYxNCAtMzkuMjcgTCAtMzMuODg4IC0zOS4wMTkgQyAtMzUuMzk0IC0zOC44OTYgLTM1Ljg0MiAtMzguNDYxIC0zNS44NDIgLTM3LjE0NSBMIC0zNS44NDIgLTEwLjAxNyBMIC05LjE3OSAtNDIuNjAyIEwgLTQuODQ0IC00Mi42MDIgTCAtNC44NDQgLTExLjQ2NyBDIC00Ljg0NCAtNi40OTYgLTMuMTAzIC0zLjc2IDAuMzc1IC0zLjI2MiBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NTUuNjE5NCAxMjkuNTEwNikiPjxwYXRoIGQ9Ik0gMCAwIEwgNi41MzkgMTUuMjI3IEwgMTMuMjAxIDAgWiBNIDI3Ljk4MiAtMTAuNTg2IEwgMTEuNDQ0IDI2Ljc1NSBMIDcuMTA5IDI2Ljc1NSBMIC03LjEwMiAtNS4wNzUgQyAtMTAuMTE3IC0xMS45MDEgLTEwLjQzNyAtMTEuODM5IC0xNS4wMjIgLTEyLjUzMiBMIC0xNC43MDkgLTE1Ljg1NiBMIC0xLjE4NiAtMTUuODU2IEwgLTAuODc1IC0xMi41MzIgTCAtMy43MDMgLTEyLjI4MiBDIC01LjAyMiAtMTIuMTU5IC01LjA4NSAtMTEuODQ4IC00LjUyMiAtMTAuNTk0IEwgLTEuNzU3IC00LjA3OCBMIDE1LjAzIC00LjA3OCBMIDE1LjQ2NyAtNS4wODMgQyAxOC40MiAtMTEuOTA5IDE4Ljc0MSAtMTEuODQ4IDE0LjIwOSAtMTIuNTQgTCAxNC41MjIgLTE1Ljg2NCBMIDMzLjA2NyAtMTUuODY0IEwgMzMuMzggLTEyLjU0IEwgMzAuNTUyIC0xMi4yOTIgQyAyOS4yMzEgLTEyLjE2NyAyOC40NzMgLTExLjg1NiAyNy45NzQgLTEwLjYwMyBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MjAuNTc2OSAxMjUuMzc3NCkiPjxwYXRoIGQ9Ik0gMCAwIEwgLTEuOTU0IC00Ljg4NyBDIC0yLjY0IC02LjcwMSAtMy4yNzMgLTcuMjA3IC01LjY2NSAtNy4yMDcgTCAtMTUuMDMyIC03LjIwNyBMIC0xNS4wMzIgMTkuNTQ2IEMgLTE1LjAzMiAyNC40MzUgLTEzLjQzNyAyNy4xMDcgLTEwLjI1IDI3LjU2NCBMIC0xMC42MjUgMzAuODg4IEwgLTI5LjI0MSAzMC44ODggTCAtMjkuNjE2IDI3LjYyNSBMIC0yNi42MDEgMjcuMzc2IEMgLTI1LjIxNyAyNy4xOTEgLTI0Ljg0NCAyNi44MTcgLTI0Ljg0NCAyNS41IEwgLTI0Ljg0NCAxOS41NDYgTCAtMjQuNzE5IC0wLjI0OCBDIC0yNC43MTkgLTUuMjIgLTI2LjI5MiAtNy45MzQgLTI5LjQzOCAtOC4zODkgTCAtMjkuMTI1IC0xMS43MTMgTCAtNi44MDYgLTExLjcxMyBDIC0zLjg1NCAtMTEuNzEzIC0wLjg5MyAtMTEuODM5IDIuMTIyIC0xMi4wMjYgTCAzLjEzMSAtMC4zNzMgTCAtMC4wMSAwIFoiIGZpbGw9IiMwMDIxOTkiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L2c+PGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXBwYXRoMCkiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE0MC4zOTU3IDkwLjA3MjkpIj48cGF0aCBkPSJNIDAgMCBDIDAgMi44OCAyLjE0MSA1LjY5OCA2Ljc4OCA1LjY5OCBDIDExLjQzNiA1LjY5OCAxNC45NTkgMy4xMjkgMTcuMzUgLTIuODI2IEwgMjAuNTYxIC0yLjQ1MyBMIDE5LjQyOCA3LjUxMiBDIDE2LjI4OCA5LjEzOCAxMS44ODIgMTAuMjA1IDcuMjk3IDEwLjIwNSBDIC0zLjc3MyAxMC4yMDUgLTguMjMzIDMuOTM4IC04LjIzMyAtMi4xNDIgQyAtOC4yMzMgLTE3LjkyNiAxNC4wMjMgLTEzLjkxOCAxNC4wMjMgLTIzLjE4OSBDIDE0LjAyMyAtMjYuMDY5IDExLjU2OSAtMjkuMTQzIDYuMTAxIC0yOS4xNDMgQyAwLjYzMyAtMjkuMTQzIC0zLjIwMyAtMjYuODIzIC02LjEwMiAtMTkuNTYyIEwgLTkuMTE3IC0xOS45MzUgTCAtNy44NTkgLTMwLjI3MiBDIC00LjMzNSAtMzIuMjcyIDAuMjUgLTMzLjY1OSA1LjUzIC0zMy42NTkgQyAxNy40MTIgLTMzLjY1OSAyMi4yNTYgLTI3LjQ1NSAyMi4yNTYgLTIwLjkzOSBDIDIyLjI1NiAtNS4yMTYgMCAtOS4yMjYgMCAtMC4wMTggWiIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTkyLjQwMDggNjEuMDYyOSkiPjxwYXRoIGQ9Ik0gMCAwIEMgLTkuMDU0IDAgLTE1LjU5MyA3LjA3NCAtMTUuNTkzIDE4LjQ4NyBDIC0xNS41OTMgMjguMzI2IC05LjYxNiAzNC41OTMgLTEuNDQ1IDM0LjU5MyBDIDQuOTY5IDM0LjU5MyA5LjQyOSAzMS41MjcgMTEuNTY5IDI1LjMyMyBMIDE0Ljg0NCAyNS42OTYgTCAxMy43NzMgMzUuOTA4IEMgOS42MjQgMzcuOTE3IDQuNjU3IDM5LjM1OCAtMC45MzcgMzkuMzU4IEMgLTE2LjU5MiAzOS4zNTggLTI1LjgzMyAyOS40NTYgLTI1LjgzMyAxNi4zNjIgQyAtMjUuODMzIDMuMjcxIC0xNi4wMjEgLTQuNzU3IC0xLjQ5OSAtNC43NTcgQyA0LjkxNSAtNC43NTcgOS42MzQgLTMuNDM5IDEzLjkwNiAtMC45OTcgTCAxNC45MTQgOS4wOTMgTCAxMS43NzQgOS40MDQgQyA5LjU3MSAyLjg4OCA2LjMwNiAwLjAwOCAwLjAxOCAwLjAwOCBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNTMuNTIyIDYyLjUwMzEpIj48cGF0aCBkPSJNIDAgMCBMIDAgNS44OTIgTCAtMC4xODggMjUuODExIEMgLTAuMTg4IDMwLjY5OCAxLjQwNyAzMy4zNzIgNC41OTQgMzMuODI3IEwgNC4yODIgMzcuMTUzIEwgLTE0LjM4OSAzNy4wOTEgTCAtMTQuNzAxIDMzLjc2NyBMIC0xMS43NDkgMzMuNTE2IEMgLTEwLjM2NSAzMy40NTQgLTkuOTkgMzMuMDIgLTkuOTkgMzEuNzAzIEwgLTkuOTkgMjUuODExIEwgLTkuOTI3IDE4LjQxNiBMIC0yOC4wOTkgMTguNDE2IEwgLTI4LjE2MiAyNS44MTEgQyAtMjguMTYyIDMwLjY5OCAtMjYuNTY3IDMzLjM3MiAtMjMuMzggMzMuODI3IEwgLTIzLjY5MyAzNy4xNTMgTCAtNDIuMzcxIDM3LjA5MSBMIC00Mi42ODQgMzMuNzY3IEwgLTM5LjczMSAzMy41MTYgQyAtMzguMzQ3IDMzLjQ1NCAtMzcuOTc0IDMzLjAyIC0zNy45NzQgMzEuNzAzIEwgLTM3Ljk3NCAyNS44MTEgTCAtMzcuNzg2IDUuODkyIEMgLTM3Ljc4NiAxLjAwNCAtMzkuMzc5IC0xLjY2OSAtNDIuNTY4IC0yLjEyNCBMIC00Mi4yNTYgLTUuNDQ4IEwgLTIzLjU4NSAtNS4zODggTCAtMjMuMjczIC0yLjA2NCBMIC0yNi4yMjUgLTEuODE0IEMgLTI3LjYwOSAtMS43NTEgLTI3Ljk4MiAtMS4zMTcgLTI3Ljk4MiAwIEwgLTI3Ljk4MiA1Ljg5MiBMIC0yOC4wNDUgMTMuOTEgTCAtOS44NzUgMTMuOTEgTCAtOS44MTIgNS44OTIgQyAtOS44MTIgMS4wMDQgLTExLjQwNyAtMS42NjkgLTE0LjU5NCAtMi4xMjQgTCAtMTQuMjgxIC01LjQ0OCBMIDQuMzk3IC01LjM4OCBMIDQuNzEgLTIuMDY0IEwgMS43NTcgLTEuODE0IEMgMC4zNzUgLTEuNzUxIDAgLTEuMzE3IDAgMCIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjg1LjQxMjYgNjAuODEyNykiPjxwYXRoIGQ9Ik0gMCAwIEMgLTcuOTg1IDAgLTEzLjM5IDcuODkzIC0xMy4zOSAxOS42MDggQyAtMTMuMzkgMjguODE3IC04Ljk5MSAzNS4wODQgLTEuODE5IDM1LjA4NCBDIDYuMTY0IDM1LjA4NCAxMS41MDYgMjcuMTkxIDExLjUwNiAxNS40NzUgQyAxMS41MDYgNi4yNjcgNy4xIDAgMCAwIE0gLTAuMTg4IDM5LjU5OCBDIC0xNC4xNDggMzkuNTk4IC0yMy42NCAzMC4zMjcgLTIzLjY0IDE2LjY2NyBDIC0yMy42NCA0LjA3MyAtMTQuNzA5IC00LjUxNCAtMS42MzQgLTQuNTE0IEMgMTIuMzI3IC00LjUxNCAyMS44MTkgNC43NTcgMjEuODE5IDE4LjQxOCBDIDIxLjgxOSAzMS4wMTEgMTIuODkgMzkuNTk4IC0wLjE4OCAzOS41OTgiIGZpbGw9IiMwMDIxOTkiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L2c+PGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXBwYXRoMCkiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMzNC40NjQ5IDYwLjgxMjcpIj48cGF0aCBkPSJNIDAgMCBDIC03Ljk4NSAwIC0xMy4zOSA3Ljg5MyAtMTMuMzkgMTkuNjA4IEMgLTEzLjM5IDI4LjgxNyAtOC45OTEgMzUuMDg0IC0xLjgxOSAzNS4wODQgQyA2LjE2NCAzNS4wODQgMTEuNTA2IDI3LjE5MSAxMS41MDYgMTUuNDc1IEMgMTEuNTA2IDYuMjY3IDcuMSAwIDAgMCBNIC0wLjE4OCAzOS41OTggQyAtMTQuMTQ4IDM5LjU5OCAtMjMuNjQgMzAuMzI3IC0yMy42NCAxNi42NjcgQyAtMjMuNjQgNC4wNzMgLTE0LjcwOSAtNC41MTQgLTEuNjM0IC00LjUxNCBDIDEyLjMyNyAtNC41MTQgMjEuODE5IDQuNzU3IDIxLjgxOSAxOC40MTggQyAyMS44MTkgMzEuMDExIDEyLjg5IDM5LjU5OCAtMC4xODggMzkuNTk4IiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzODkuMzA1NiA2OC43NjgyKSI+PHBhdGggZD0iTSAwIDAgTCAtMS45NTIgLTQuODg3IEMgLTIuNjQgLTYuNzAxIC0zLjI3MyAtNy4yMDkgLTUuNjYzIC03LjIwOSBMIC0xNS4wMyAtNy4yMDkgTCAtMTUuMDMgMTkuNTQ2IEMgLTE1LjAzIDI0LjQzMyAtMTMuNDM3IDI3LjEwNyAtMTAuMjUgMjcuNTYyIEwgLTEwLjYyMyAzMC44ODggTCAtMjkuMjQxIDMwLjg4OCBMIC0yOS42MTQgMjcuNjI1IEwgLTI2LjYwMSAyNy4zNzYgQyAtMjUuMjE3IDI3LjE4OSAtMjQuODQyIDI2LjgxNiAtMjQuODQyIDI1LjQ5MyBMIC0yNC44NDIgMTkuNTM2IEwgLTI0LjcxNyAtMC4yNTggQyAtMjQuNzE3IC01LjIyOSAtMjYuMjkgLTcuOTQyIC0yOS40MzYgLTguMzk5IEwgLTI5LjEyMyAtMTEuNzIzIEwgLTYuODA2IC0xMS43MjMgQyAtMy44NTQgLTExLjcyMyAtMC44OTEgLTExLjg0OCAyLjEyNCAtMTIuMDM0IEwgMy4xMzEgLTAuMzgxIEwgLTAuMDA4IC0wLjAwOCBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNDQuMTI0NSAyLjMwOTkpIj48cGF0aCBkPSJNIDAgMCBMIC00LjM4OSAwIEwgLTQuMzg5IDExLjkwMyBMIDAuOTk5IDExLjkwMyBDIDUuNDMyIDExLjkwMyA4LjQ3NCA5LjkxMiA4LjQ3NCA2LjAxOSBDIDguNDc0IDIuMTI0IDUuMzQzIDAgMCAwIE0gLTQuMzg5IDI1Ljc1IEwgLTEuNjk1IDI1Ljc1IEMgMy4zOSAyNS43NSA2LjE2NCAyMy42MjYgNi4xNjQgMTkuNzMzIEMgNi4xNjQgMTYuNjEzIDMuOTUyIDEzLjYyNyAtMC44MyAxMy42MjcgTCAtNC4zODkgMTMuNjI3IEwgLTQuMzg5IDI1Ljc0MSBaIE0gNC4wNDEgMTMuNTAyIEMgNy41MiAxNC41ODYgOS4zNCAxNy4wMDMgOS4zNCAyMC4wMzQgQyA5LjM0IDI0LjkyNCA1LjU1NyAyNy41NjQgLTEuNDcyIDI3LjU2NCBMIC0xMC44MTEgMjcuNTY0IEwgLTEwLjk0NSAyNi4wNTMgTCAtOC41NTQgMjUuODgzIEMgLTcuNjQ1IDI1Ljc5NSAtNy4zNDEgMjUuNDkyIC03LjM0MSAyNC41ODYgTCAtNy4zNDEgMy44MTUgQyAtNy4zNDEgMS4zMDEgLTguNTQzIC0wLjA4MiAtMTAuOTQ1IC0wLjMzNiBMIC0xMC44MTEgLTEuODQ5IEwgLTAuMjE0IC0xLjg0OSBDIDcuMjk3IC0xLjg0OSAxMS42NDEgMS4xMzkgMTEuNjQxIDYuMjg1IEMgMTEuNjQxIDEwLjMxIDguNTU1IDEyLjg2MyA0LjA0MSAxMy41MTEgWiIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTY2LjYzIDE0LjY4MzkpIj48cGF0aCBkPSJNIDAgMCBMIDAuMDQ1IDEzLjQ1NyBMIDQuNTIzIDEzLjQ1NyBDIDkuNTE4IDEzLjQ1NyAxMi4zODEgMTAuOTg1IDEyLjM4MSA2Ljc0NiBDIDEyLjM4MSAyLjUwNSA5LjU1NCAtMC4wMSA0LjczNyAtMC4wMSBMIDAgLTAuMDEgWiBNIDE1LjQyMyAtMTEuNTEgTCA3LjI2MSAtMS40MzIgQyAxMi41NiAtMC42NDkgMTUuNjAyIDIuMzgyIDE1LjYwMiA3LjA0NyBDIDE1LjYwMiAxMi4yMzkgMTEuNjk1IDE1LjE4IDQuOTE1IDE1LjE4IEwgLTYuMzc4IDE1LjE4IEwgLTYuNTEyIDEzLjY3IEwgLTQuMTIxIDEzLjUwMiBDIC0zLjIxMSAxMy40MTIgLTIuOTA4IDEzLjEwOSAtMi45MDggMTIuMjA0IEwgLTIuOTA4IC04LjM5OSBDIC0yLjkwOCAtMTAuOTk2IC00LjEwOSAtMTIuNDM4IC02LjUxMiAtMTIuNzMgTCAtNi4zNzggLTE0LjI0IEwgMy40MzQgLTE0LjI0IEwgMy41NjggLTEyLjczIEwgMS4yMjIgLTEyLjU2IEMgMC4yNjggLTEyLjQ3MiAwLjAwOSAtMTIuMTY5IDAuMDA5IC0xMS4yNjIgTCAwLjAwOSAtMS42NTMgTCAzLjkxNiAtMS42NTMgTCAxMy43NzMgLTE0LjI0OCBMIDE4LjE2MiAtMTQuMjQ4IEwgMTguMjUxIC0xMi43MzcgTCAxNi44NTkgLTEyLjU2OSBDIDE2LjM0MiAtMTIuNDggMTUuOTk0IC0xMi4yMjIgMTUuNDIzIC0xMS41MjggWiIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTk1Ljg3MTIgMTIuMzg5NikiPjxwYXRoIGQ9Ik0gMCAwIEwgNS45NDkgMTMuNTQ3IEwgMTEuODU0IDAgWiBNIDE5LjAyNiAtOS4wMzggTCA3LjM4NSAxNy40OTIgTCA1LjY0NiAxNy40OTIgTCAtNC45OTYgLTYuNjEzIEMgLTYuNTEyIC0xMC4wMzUgLTYuNTU3IC0xMC4wMzUgLTEwLjAzNiAtMTAuNDI2IEwgLTkuOTAyIC0xMS45MzYgTCAtMS4wODkgLTExLjkzNiBMIC0wLjk1NSAtMTAuNDI2IEwgLTMuMjU2IC0xMC4yNTggQyAtNC4xNjYgLTEwLjE2OCAtNC4zIC05LjkxIC0zLjk1MiAtOS4wNDggTCAtMC43NzcgLTEuODIxIEwgMTIuNjQ4IC0xLjgyMSBMIDE0Ljc4IC02LjYyMSBDIDE2LjI1MSAtMTAuMDQzIDE2LjI5NiAtMTAuMDQzIDEyLjgyNyAtMTAuNDMzIEwgMTIuOTYgLTExLjk0NiBMIDIyLjg2MiAtMTEuOTQ2IEwgMjIuOTk1IC0xMC40MzMgTCAyMC42OTUgLTEwLjI2NSBDIDE5Ljc4NCAtMTAuMTc3IDE5LjQzNiAtOS45MTkgMTkuMDQ0IC05LjA1NiBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyMzQuODc5IDI5Ljg3MzkpIj48cGF0aCBkPSJNIDAgMCBMIC0xMi4wMzQgMCBDIC0xMy44MTggMCAtMTUuNTQ4IDAuMDg4IC0xNy4yODcgMC4yMTMgTCAtMTcuOTgzIC02LjM2NSBMIC0xNi40NjYgLTYuNTMzIEwgLTE1LjI5NyAtMy4yNDQgQyAtMTQuOTA1IC0yLjIwNCAtMTQuNTU3IC0xLjgxNCAtMTMuMTIyIC0xLjgxNCBMIC03LjUyIC0xLjgxNCBMIC03LjUyIC0yMy41ODEgQyAtNy41MiAtMjYuMTc3IC04LjcyMiAtMjcuNjE5IC0xMS4xMjMgLTI3LjkxIEwgLTEwLjk5IC0yOS40MjEgTCAtMS4xMzMgLTI5LjQyMSBMIC0wLjk5OSAtMjcuOTEgTCAtMy4zODkgLTI3Ljc0MiBDIC00LjM0NCAtMjcuNjUyIC00LjYwMiAtMjcuMzQ5IC00LjYwMiAtMjYuNDQyIEwgLTQuNjAyIC0yMy41ODkgTCAtNC41NTcgLTEuODIzIEwgMS4wODggLTEuODIzIEMgMi40OCAtMS44MjMgMi44NzMgLTIuMjE0IDMuMjIxIC0zLjI1NCBMIDQuNDM0IC02LjU0MyBMIDUuOTEzIC02LjM3MyBMIDUuMjYzIDAuMjAzIEMgMy40NzggMC4wNyAxLjczOSAtMC4wMSAwLjAxIC0wLjAxIFoiIGZpbGw9IiMwMDIxOTkiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L2c+PGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXBwYXRoMCkiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI1My4yOTkzIDI4LjM2MzMpIj48cGF0aCBkPSJNIDAgMCBMIC0wLjEzMyAxLjUxMSBMIC05Ljk1NSAxLjUxMSBMIC0xMC4wOSAwIEwgLTcuNzQzIC0wLjE3IEMgLTYuNzg5IC0wLjI1OCAtNi41MjkgLTAuNTYxIC02LjUyOSAtMS40NjggTCAtNi41MjkgLTIyLjA3MSBDIC02LjUyOSAtMjQuNjY2IC03LjczMSAtMjYuMTA4IC0xMC4xMzMgLTI2LjM5OSBMIC0xMCAtMjcuOTEgTCAtMC4xODggLTI3LjkxIEwgLTAuMDUzIC0yNi4zOTkgTCAtMi40IC0yNi4yMzEgQyAtMy4zNTMgLTI2LjE0MSAtMy42MTMgLTI1LjgzOCAtMy42MTMgLTI0LjkzMiBMIC0zLjYxMyAtNC4zMjkgQyAtMy42MTMgLTEuNzMzIC0yLjQxMSAtMC4yOTEgLTAuMDA4IDAgWiIgZmlsbD0iIzAwMjE5OSIgZmlsbC1vcGFjaXR5PSIxIj48L3BhdGg+PC9nPjwvZz48ZyBjbGlwLXBhdGg9InVybCgjY2xpcHBhdGgwKSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjYxLjIxMTggMjMuMTcwOSkiPjxwYXRoIGQ9Ik0gMCAwIEMgMCAyLjU5NSAxLjk1NCA1LjQxMyA2LjM4NiA1LjQxMyBDIDkuNzMyIDUuNDEzIDEyLjQyNSAzLjgxNSAxMy44OTggLTAuMzkxIEwgMTUuMzcgLTAuMjIxIEwgMTQuNzYyIDUuMDE0IEMgMTIuNjc1IDYuMjY3IDkuOTM3IDcuMTM5IDYuODU5IDcuMTM5IEMgMC4wOCA3LjEzOSAtMi43MzggMy4yNDQgLTIuNzM4IC0wLjYxNCBDIC0yLjczOCAtMTEuMDkyIDEzLjcyOCAtNy4yNzkgMTMuNzI4IC0xNS43MjMgQyAxMy43MjggLTE4LjgzNSAxMS4xNjggLTIxLjQzOCA2LjYwMSAtMjEuNDM4IEMgMi4wMzQgLTIxLjQzOCAtMC4zNDggLTE5LjkyNyAtMi4yMjIgLTE1LjA3NSBMIC0zLjU2OCAtMTUuMjA4IEwgLTIuOTYzIC0yMC44NzkgQyAtMC42NjEgLTIyLjI2NCAyLjI5MiAtMjMuMTcxIDYuMTE5IC0yMy4xNzEgQyAxMi44OTggLTIzLjE3MSAxNi40MTMgLTE5LjYyNCAxNi40MTMgLTE1LjExOCBDIDE2LjQxMyAtNC40MjYgLTAuMDEgLTguMjM5IC0wLjAxIC0wLjAxOCBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMDAuMzUyNCAzLjY5NzMpIj48cGF0aCBkPSJNIDAgMCBDIC0wLjM0OCAtMS4wNCAtMC43MzkgLTEuMzg3IC0yLjEzIC0xLjM4NyBMIC0xMS44MTkgLTEuMzg3IEwgLTExLjg2MiAyMC4zMzcgQyAtMTEuODYyIDIyLjkzMyAtMTAuNjYyIDI0LjM3NSAtOC4yNTggMjQuNjY2IEwgLTguMzkzIDI2LjE3NyBMIC0xOC4yMTUgMjYuMTc3IEwgLTE4LjM0OCAyNC42NjYgTCAtMTYuMDAxIDI0LjQ5NiBDIC0xNS4wNDcgMjQuNDA4IC0xNC43ODkgMjQuMTA1IC0xNC43ODkgMjMuMTk4IEwgLTE0Ljc4OSAyLjQyNyBDIC0xNC43ODkgLTAuMDg2IC0xNS45ODkgLTEuNDcgLTE4LjM5MyAtMS43MjQgTCAtMTguMjU4IC0zLjIzNiBMIC0zLjIyOCAtMy4yMzYgQyAtMS40ODkgLTMuMjM2IDAuMjUgLTMuMjc5IDIuMDI3IC0zLjQ0OSBMIDIuNjc3IDMuMTc0IEwgMS4yMDYgMy4zNDIgTCAtMC4wMDggMC4wMSBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMTMuNTE5OCAxMi4zODk2KSI+PHBhdGggZD0iTSAwIDAgTCA1Ljk1MSAxMy41NDcgTCAxMS44NTQgMCBaIE0gMTkuMDI2IC05LjAzOCBMIDcuMzg3IDE3LjQ5MiBMIDUuNjQ2IDE3LjQ5MiBMIC00Ljk5NSAtNi42MTMgQyAtNi41MTEgLTEwLjAzNSAtNi41NTYgLTEwLjAzNSAtMTAuMDM1IC0xMC40MjYgTCAtOS45MDIgLTExLjkzNiBMIC0xLjA4OSAtMTEuOTM2IEwgLTAuOTU0IC0xMC40MjYgTCAtMy4yNTYgLTEwLjI1OCBDIC00LjE2NiAtMTAuMTY4IC00LjI5OSAtOS45MSAtMy45NTEgLTkuMDQ4IEwgLTAuNzc2IC0xLjgyMSBMIDEyLjY1IC0xLjgyMSBMIDE0Ljc4MiAtNi42MjEgQyAxNi4yNTMgLTEwLjA0MyAxNi4yOTggLTEwLjA0MyAxMi44MjcgLTEwLjQzMyBMIDEyLjk2MiAtMTEuOTQ2IEwgMjIuODYyIC0xMS45NDYgTCAyMi45OTcgLTEwLjQzMyBMIDIwLjY5NSAtMTAuMjY1IEMgMTkuNzg0IC0xMC4xNzcgMTkuNDM2IC05LjkxOSAxOS4wNDYgLTkuMDU2IFoiIGZpbGw9IiMwMDIxOTkiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L2c+PGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXBwYXRoMCkiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM2Mi44MjIzIDI4LjM2MzMpIj48cGF0aCBkPSJNIDAgMCBMIC0wLjEzNSAxLjUxMSBMIC04Ljk1NiAxLjUxMSBMIC05LjA5MSAwIEwgLTYuNzg5IC0wLjE3IEMgLTUuODc4IC0wLjI1OCAtNS43NDUgLTAuNTYxIC02LjA5MyAtMS4zNzggTCAtMTUuMjU0IC0yMy42NzEgTCAtMjMuNTUgLTMuODUgQyAtMjQuNTA4IC0xLjUzOCAtMjMuODI2IC0wLjI1NiAtMjEuNTA4IDAgTCAtMjEuNjQxIDEuNTExIEwgLTMxLjU4OCAxLjUxMSBMIC0zMS43MjEgMCBMIC0yOS40MTkgLTAuMTcgQyAtMjguNTEgLTAuMjU4IC0yOC4xNjIgLTAuNTYxIC0yNy44MTQgLTEuMzc4IEwgLTE2LjY5MSAtMjcuOTEgTCAtMTQuOTUyIC0yNy45MSBMIC00LjkxNSAtMy44NSBDIC0zLjk1NyAtMS41MzggLTIuMzI0IC0wLjI1NiAtMC4wMSAwIFoiIGZpbGw9IiMwMDIxOTkiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L2c+PGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXBwYXRoMCkiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM2Ny41NjcxIDEyLjM4OTYpIj48cGF0aCBkPSJNIDAgMCBMIDUuOTUxIDEzLjU0NyBMIDExLjg1NiAwIFogTSAyMC42NzcgLTEwLjI1OCBDIDE5Ljc2OSAtMTAuMTY4IDE5LjQyMSAtOS45MSAxOS4wMjggLTkuMDQ4IEwgNy4zODcgMTcuNDg0IEwgNS42NDggMTcuNDg0IEwgLTQuOTk1IC02LjYyMSBDIC02LjUxMSAtMTAuMDQzIC02LjU1NiAtMTAuMDQzIC0xMC4wMzUgLTEwLjQzNSBMIC05LjkgLTExLjk0NiBMIC0xLjA4OSAtMTEuOTQ2IEwgLTAuOTU0IC0xMC40MzUgTCAtMy4yNTYgLTEwLjI2NSBDIC00LjE2NCAtMTAuMTc3IC00LjI5OSAtOS45MTkgLTMuOTUxIC05LjA1NiBMIC0wLjc3NiAtMS44MzEgTCAxMi42NSAtMS44MzEgTCAxNC43ODIgLTYuNjMxIEMgMTYuMjYzIC0xMC4wNTIgMTYuMjk4IC0xMC4wNTIgMTIuODI3IC0xMC40NDMgTCAxMi45NjIgLTExLjk1NCBMIDIyLjg2NCAtMTEuOTU0IEwgMjIuOTk3IC0xMC40NDMgTCAyMC42OTUgLTEwLjI3NSBaIiBmaWxsPSIjMDAyMTk5IiBmaWxsLW9wYWNpdHk9IjEiPjwvcGF0aD48L2c+PC9nPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwcGF0aDApIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNzUuMjYwNiA1NTIuMzI3OCkiPjxwYXRoIGQ9Ik0gMCAwIEMgLTYuNTQ3IDAgLTExLjg0NiAtMi40OCAtMTYuMjA4IC05LjAwNCBDIC00Ljk4NyAtMi43OTEgOC4xIC0xMC41NTkgOC40MTEgLTIyLjM1NCBDIDguNzI0IC0yNy45NDUgNy4xNjIgLTMzLjg0NyA1LjYxMSAtMzUuNzA0IEMgMjUuMjQ0IC0yMS4xMSAxNC4wMjMgMC4wMDkgMCAwLjAwOSBaIE0gLTQzLjk0IC0zNy44ODIgQyAtNDcuOTkxIC0zNy41NzEgLTUxLjcyOCAtMzcuNTcxIC01NS4xNjMgLTM3LjU3MSBMIC01NS4xNjMgLTM4LjE5MyBDIC01NS4xNjMgLTQyLjIyOCAtNTguMjc2IC00NS4zMzkgLTYyLjMzNSAtNDUuMzM5IEMgLTY2LjA3MSAtNDUuMzM5IC02OS4xOTQgLTQyLjU0OCAtNjkuNTA3IC0zOS4xMjYgQyAtNzMuNTU2IC00MC4wNiAtNzcuNjA1IC00MS4zMDQgLTgxLjk2OCAtNDMuNzg0IEMgLTcyLjYyIC0yOS4xODkgLTU0LjU0OCAtMjMuNTk5IC00My45NSAtMzcuODgyIFogTSAtNjkuMTg0IC0xMTUuMjAxIEMgLTg1LjA4MSAtMTIwLjE3MSAtMTAzLjE1NCAtMTE3LjY5MSAtMTEyLjgxNCAtMTA5LjYxIEMgLTExMy40MzkgLTExNi40NDYgLTExNi4yNCAtMTE3Ljk5MiAtMTE2LjI0IC0xMjIuOTYxIEMgLTExNi4yNCAtMTI5LjQ4NCAtMTA5LjY5MiAtMTM1LjA3NSAtOTkuNDE2IC0xMzUuMDc1IEMgLTgxLjY1NiAtMTM1LjA3NSAtNzEuOTk1IC0xMjIuNjU4IC02OS4xODQgLTExNS4yMDEgTSAtNDQuNTY2IC02Ni43NiBDIC0zNy40MDMgLTY2LjEzOCAtMjguNjcgLTY4LjkyOSAtMjQuNjE5IC03Ni4wNzUgQyAtMjMuNjgzIC01OS4wMDEgLTM3LjQwMyAtNTAuOTIxIC01MS43MjggLTUyLjQ3NyBDIC0zNS44MzIgLTQwLjY3MyAtMTQuOTU5IC00NS45NTMgLTQuMDQ5IC02MS4xNjkgQyAtNC45ODcgLTM4LjE5MyAtMjEuODExIC0yNS40NTYgLTQxLjc1NSAtMjIuMzU0IEMgLTMyLjQwNiAtMTguMzE5IC0xOC4zODUgLTE2Ljc2MyAtMTAuNTg4IC0xNy4zODYgQyAtMzIuNDA2IC03LjQ0OCAtNzIuOTEzIC05LjMxNSAtOTMuNzk2IC0yNy4zMjMgTCAtODguMTg2IC0zNS4wODIgTCAtMTI2LjgyOCAtNjYuMTM4IEMgLTExOS4wNDEgLTY0LjU4MyAtMTEwLjAwNCAtNjQuNTgzIC05OS43MTkgLTY2LjEzOCBDIC0xMDEuOTA1IC03OS40ODggLTExNy4xNjcgLTc3LjMxOSAtMTE3LjE2NyAtODcuODc5IEMgLTExNy4xNjcgLTk5LjA1OSAtMTAzLjc2OSAtMTA5LjI5OSAtODQuNzYgLTEwOS4yOTkgQyAtNzMuODUxIC0xMDkuMjk5IC02MS43MDIgLTEwNS44ODcgLTU1Ljc3OSAtOTUuOTQ5IEMgLTcxLjM2MSAtMTA0LjMzMiAtOTEuMzA4IC0xMDIuMTYzIC0xMDEuOTA1IC05MC45ODEgQyAtODYuOTQ2IC05Ni41NzEgLTY4LjI0OCAtOTMuMTU4IC02Mi4zMjUgLTgyLjkxIEMgLTcxLjM2MSAtODguNTAxIC04NC43NiAtODkuNDM0IC05NC43MzMgLTgzLjIyMSBDIC04MC4zOTggLTg1LjA4OCAtNjkuOCAtNzkuMTg2IC02OC41NTEgLTY4LjYyNyBDIC01NS43NzkgLTcyLjY2MiAtNDQuMjQ1IC04MS4wNDQgLTM5Ljg4MyAtOTguNDM4IEMgLTMzLjY0NyAtODkuNDM0IC0zNi40NTggLTc1LjE1MSAtNDQuNTU2IC02Ni43NiBaIE0gLTEyMi40NzUgLTEwNi4xOTggTCAtMTE5LjY3NCAtMTAxLjIyOCBDIC0xMjUuOTA5IC05My43NzIgLTEyMy43MjQgLTgzLjIyMSAtMTI5LjMzNSAtNzkuMTg2IEMgLTEzMi40NDggLTg3LjU2OCAtMTMxLjIwOCAtOTkuMDU5IC0xMjIuNDc1IC0xMDYuMTk4IE0gLTEzLjM5OCAtMjg1LjM2OSBDIC0zNy4zOTQgLTI4MS45NTUgLTU3LjAyNyAtMjYwLjgzNiAtNjEuMDc3IC0yMzEuMzM1IEMgLTYzLjI2MyAtMjM2LjkyNiAtNjQuMTkgLTI0My43NjIgLTYyLjk1MSAtMjUxLjUyMiBDIC02Mi4zMjUgLTI1NS41NTcgLTY0LjE5OSAtMjU2LjggLTY3IC0yNTQuMzEzIEMgLTc3LjU5NyAtMjQ1LjMwOCAtODUuMDcyIC0yMjkuNzggLTg1LjA3MiAtMjA5LjkwNSBDIC04NS4wNzIgLTIwMC4yODEgLTc5LjE0OSAtMTc4Ljg1MSAtNjguNTUxIC0xNjcuOTkgQyAtODcuMjQ5IC0xNzkuNDgyIC05NC4xMDkgLTE5OS42NTggLTkyLjIzNSAtMjE4LjkxIEMgLTkxLjkyMyAtMjIyLjk0NiAtOTMuNzk2IC0yMjQuODEyIC05Ny4yMjIgLTIyMi4wMTIgQyAtMTE0LjM1OCAtMjA4LjM1IC0xMjQuMDE4IC0xODguMTY1IC0xMjQuMDE4IC0xNjguOTE0IEMgLTEyNC4wMTggLTE1OC4zNTQgLTEyMC45MDUgLTE0Ni41NiAtMTE2LjUzNCAtMTM5LjQxMyBDIC0xMjEuNTIgLTEzNiAtMTI1Ljg4MiAtMTMwLjcyMSAtMTI1Ljg4MiAtMTIzLjg4NSBDIC0xMjUuODgyIC0xMTkuODUgLTEyNC42MzQgLTExNy4zNiAtMTIzLjM5NCAtMTE0LjU3IEMgLTEzOS45MTQgLTEwNC4wMTEgLTE0MC44NDIgLTgzLjIwNCAtMTM0LjkyNyAtNzIuOTY0IEwgLTEzNi4xNzYgLTcxLjQwOSBDIC0xMzguMDUgLTY4LjYxOCAtMTM3LjQyNSAtNjYuMTI5IC0xMzQuOTI3IC02My45NTEgTCAtOTguMTQ5IC0zNC43NjIgTCAtMTAxLjU3NSAtMzAuMTA1IEMgLTEwMy43NiAtMjcuNjI1IC0xMDMuMTM2IC0yNS4xMzYgLTEwMC42MzggLTIyLjk1OCBMIC05OC4xNCAtMjAuNzgxIEwgLTk4LjE0IDMuNDQgQyAtODcuODU1IDE0LjkzMiAtNTUuMTM2IDI1Ljc5NCAtMTMuOTk2IDIzLjYyNSBDIC00OC41ODkgMzEuMDczIC05MC4wNDEgMjMuMDAzIC0xMDUuOTI4IDcuMTY0IEwgLTEwNS45MjggLTEwLjUzMyBMIC0xNzAuNDM5IDE5LjU5IEwgLTE2LjE5OCA5OC40MzggTCAyNC42MjkgNzcuMzE5IEwgMjQuMzE2IC03OS40OTcgQyAxNC4zNDQgLTgxLjY3NSA5Ljk4MiAtODkuMTIzIDkuOTgyIC05Ni44ODMgQyA5Ljk4MiAtMTA0LjY0MiAxNS4yOCAtMTExLjc4OSAyMi4xMzkgLTExMy45NTYgTCA0LjA2NyAtMTU1LjI2IEMgMTcuNzc3IC0xNjIuNzEgMzguOTczIC0xNjIuNzEgNTIuNjgzIC0xNTUuMjYgTCAzNC42MTEgLTExMy4zNDQgQyA0MS40NyAtMTEwLjU1MiA0NS41MTkgLTEwNC42NSA0NS41MTkgLTk2Ljg4MyBDIDQ1LjUxOSAtODcuNTY4IDQwLjg0NyAtODIuMjg4IDMxLjgxIC03OS44MDggTCAzMi4xMjEgNzMuNTg2IEwgMTQzLjY4NiAxNi4xNDEgTCA2OC44OTEgLTEzLjY3IEMgMTExLjI3MiAtNDUuMzQ4IDEyMS41NTcgLTg1LjcxIDExNy44MTkgLTExMS4xNzUgQyAxMTcuMTkzIC0xMTUuMjExIDExMy43NyAtMTE1LjgzMiAxMTAuOTU5IC0xMTIuNDIgQyAxMDMuNDg1IC0xMDIuNDgzIDkzLjIgLTk1Ljk1OCA4My41MzggLTkxLjYxMiBDIDk3Ljg3MiAtMTA1LjI3NCAxMTMuMTQ0IC0xMjYuNzAzIDExMy4xNDQgLTE1OC42ODQgQyAxMTMuMTQ0IC0yMTUuODE3IDY3LjY0MyAtMjYyLjA5IDE2LjUzOCAtMjU2LjE4NyBDIDEyLjE3NyAtMjU1LjU2NSAxMi4xNzcgLTI1Mi4xNTMgMTUuMjkgLTI1MC41OTggQyAyOS45MzYgLTI0My40NTEgNTYuNzMyIC0yMTkuNTQxIDUwLjUwNiAtMTg4LjgwNiBDIDQ5LjU3IC0yMDUuNTc3IDMyLjc0NiAtMjI0LjUxOSAxMy40MjUgLTIzMy44MzMgQyA5LjM3NCAtMjM1LjcwMSA2Ljg3NyAtMjMyLjU5IDguNDM4IC0yMjguNTU0IEMgMTEuNTUxIC0yMTkuODYyIDExLjg2NCAtMjExLjE2OCA5LjY4NyAtMjAzLjQgQyAtNi4yMDggLTIxMy42NDggLTE5LjYwNiAtMjMxLjAzNCAtMTkuNjA2IC0yNTMuMDg1IEMgLTE5LjYwNiAtMjY0LjU3OCAtMTUuODcgLTI3NC41MTUgLTExLjE5NiAtMjgxLjAzIEMgLTkuMzIyIC0yODMuODMxIC0xMC4yNTggLTI4NS42ODcgLTEzLjM4IC0yODUuMzc2IFoiIGZpbGw9IiMwMDIxOTkiIGZpbGwtb3BhY2l0eT0iMSI+PC9wYXRoPjwvZz48L2c+PC9nPjwvc3ZnPg==">
+    <div>
+      <h1>Report comment names</h1>
+      <p>Put a pupil's name and pronouns into an AI-drafted report comment. Nothing you type here leaves your computer.</p>
+    </div>
+  </header>
+
+  <section class="prompt-panel" aria-labelledby="prompt-heading">
+    <h2 id="prompt-heading">Add this line to your AI prompt</h2>
+    <blockquote id="prompt-line">Use [NAME] for the pupil's name, and [HE/SHE], [HIM/HER], [HIS/HER], [HIS/HERS] and [HIMSELF/HERSELF] for pronouns. Do not include any real names.</blockquote>
+    <button type="button" class="btn btn-secondary btn-sm" id="copy-prompt">Copy line</button>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="Mode">
+    <button type="button" role="tab" class="tab" id="tab-quick" aria-controls="panel-quick" aria-selected="true">Quick comment</button>
+    <button type="button" role="tab" class="tab" id="tab-classes" aria-controls="panel-classes" aria-selected="false" tabindex="-1">My classes</button>
+  </div>
+
+  <!-- ===================== Quick mode ===================== -->
+  <section role="tabpanel" id="panel-quick" aria-labelledby="tab-quick">
+    <p class="panel-note muted">For a one-off comment. Nothing here is saved, and it all clears when you reload the page.</p>
+    <div class="quick-grid">
+      <form id="quick-form" autocomplete="off" novalidate>
+        <div class="field">
+          <label for="q-name">Name to use</label>
+          <input type="text" id="q-name" autocomplete="off" spellcheck="false" autocapitalize="words">
+        </div>
+        <fieldset>
+          <legend>Pronouns</legend>
+          <div class="radio-row">
+            <label class="radio-pill"><input type="radio" name="q-pronouns" value="he"><span>he / him</span></label>
+            <label class="radio-pill"><input type="radio" name="q-pronouns" value="she"><span>she / her</span></label>
+            <label class="radio-pill"><input type="radio" name="q-pronouns" value="they"><span>they / them</span></label>
+          </div>
+        </fieldset>
+        <div class="field">
+          <label for="q-comment">Comment from the AI</label>
+          <span class="hint" id="q-comment-hint">Paste the comment with its tags, like [NAME] and [HE/SHE].</span>
+          <textarea id="q-comment" rows="9" aria-describedby="q-comment-hint" autocomplete="off"></textarea>
+        </div>
+        <div class="row-actions">
+          <button type="button" class="btn btn-secondary" id="q-clear">Clear</button>
+          <span class="hint" id="q-missing" aria-live="polite"></span>
+        </div>
+      </form>
+      <div id="quick-output"></div>
+    </div>
+  </section>
+
+  <!-- ===================== My classes ===================== -->
+  <section role="tabpanel" id="panel-classes" aria-labelledby="tab-classes" hidden>
+    <p class="notice" id="storage-error" hidden></p>
+
+    <div class="class-bar">
+      <div class="field">
+        <label for="class-select">Class</label>
+        <select id="class-select"></select>
+      </div>
+      <button type="button" class="btn btn-secondary" id="new-class">New class</button>
+      <button type="button" class="btn btn-ghost" id="rename-class">Rename</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-ghost" id="clear-ticks">Clear ticks</button>
+      <button type="button" class="btn btn-danger-outline" id="delete-class">Delete this class</button>
+    </div>
+
+    <div id="no-classes" class="empty-state" hidden>
+      <h3>Add your first class</h3>
+      <p>Make a class, then paste its pupils from Excel.</p>
+      <button type="button" class="btn btn-primary" id="first-class">New class <span aria-hidden="true">&gt;</span></button>
+    </div>
+
+    <div class="class-grid" id="class-grid" hidden>
+      <aside class="side" aria-labelledby="pupils-heading">
+        <div class="side-head">
+          <h3 id="pupils-heading">Pupils</h3>
+          <span class="progress" id="progress"></span>
+        </div>
+        <ul class="pupil-list" id="pupil-list"></ul>
+        <div class="side-actions">
+          <button type="button" class="btn btn-secondary btn-sm" id="paste-pupils">Paste from Excel</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="add-pupil">Add a pupil</button>
+        </div>
+      </aside>
+
+      <div class="work">
+        <div id="no-pupils" class="empty-state" hidden>
+          <h3>Add pupils to this class</h3>
+          <p>Copy the Surname and First name columns in Excel, then paste them in. You can add Name to use and Pronouns columns too.</p>
+          <div class="row-actions">
+            <button type="button" class="btn btn-primary" id="paste-pupils-2">Paste from Excel <span aria-hidden="true">&gt;</span></button>
+            <button type="button" class="btn btn-ghost" id="add-pupil-2">Add one pupil</button>
+          </div>
+        </div>
+
+        <div id="work-area">
+          <div class="banner" id="banner" aria-live="polite"></div>
+          <div class="field">
+            <label for="c-comment" id="c-comment-label">Comment from the AI</label>
+            <textarea id="c-comment" rows="7" autocomplete="off" disabled></textarea>
+          </div>
+          <div id="class-output"></div>
+          <div class="work-actions">
+            <button type="button" class="btn btn-secondary" id="next-pupil">Next pupil <span aria-hidden="true">&gt;</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="privacy">
+      <p><strong>Names are saved only in this browser, on this computer.</strong> Nothing is sent anywhere. Don't use this on a computer where you share a login with other people.</p>
+      <button type="button" class="btn btn-danger-outline btn-sm" id="delete-all">Delete all my data</button>
+    </div>
+  </section>
+</div>
+
+<!-- Output panel: one template, used by both modes -->
+<template id="output-template">
+  <section class="output">
+    <h3 data-role="title">Finished comment</h3>
+    <div class="output-text is-empty" data-role="text" tabindex="0" role="region"></div>
+    <p class="output-key">Shaded words were filled in. Orange underlines show things to check.</p>
+    <ul class="issue-list" data-role="issues"></ul>
+    <div class="output-foot">
+      <span class="char-count" data-role="count">0 characters</span>
+      <span class="foot-actions">
+        <span class="check-badge" data-role="badge" hidden></span>
+        <button type="button" class="btn btn-primary" data-role="copy" disabled><span data-role="copy-label">Copy comment</span> <span aria-hidden="true">&gt;</span></button>
+      </span>
+    </div>
+    <p class="sr-only" data-role="status" aria-live="polite"></p>
+  </section>
+</template>
+
+<!-- ===================== Dialogs ===================== -->
+<dialog id="confirm-dialog" aria-labelledby="confirm-title">
+  <h2 id="confirm-title"></h2>
+  <p id="confirm-body"></p>
+  <div class="dialog-actions">
+    <button type="button" class="btn btn-danger" id="confirm-yes"></button>
+    <button type="button" class="btn btn-secondary" id="confirm-no">Cancel</button>
+  </div>
+</dialog>
+
+<dialog id="class-dialog" aria-labelledby="class-dialog-title">
+  <form id="class-form" autocomplete="off" novalidate>
+    <h2 id="class-dialog-title">New class</h2>
+    <div class="field">
+      <label for="class-name">Class name</label>
+      <input type="text" id="class-name" maxlength="60" autocomplete="off">
+      <span class="error-text" id="class-name-error" hidden>Type a name for the class.</span>
+    </div>
+    <div class="dialog-actions">
+      <button type="submit" class="btn btn-primary">Save <span aria-hidden="true">&gt;</span></button>
+      <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="pupil-dialog" aria-labelledby="pupil-dialog-title">
+  <form id="pupil-form" autocomplete="off" novalidate>
+    <h2 id="pupil-dialog-title">Add a pupil</h2>
+    <div class="field">
+      <label for="p-surname">Surname</label>
+      <input type="text" id="p-surname" maxlength="80" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="p-first">First name</label>
+      <input type="text" id="p-first" maxlength="80" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="p-use">Name to use</label>
+      <span class="hint" id="p-use-hint">This goes into the comment. Change it if the pupil goes by another name.</span>
+      <input type="text" id="p-use" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="p-use-hint">
+    </div>
+    <fieldset>
+      <legend>Pronouns</legend>
+      <div class="radio-row">
+        <label class="radio-pill"><input type="radio" name="p-pronouns" value="he"><span>he / him</span></label>
+        <label class="radio-pill"><input type="radio" name="p-pronouns" value="she"><span>she / her</span></label>
+        <label class="radio-pill"><input type="radio" name="p-pronouns" value="they"><span>they / them</span></label>
+      </div>
+    </fieldset>
+    <p class="error-text" id="pupil-error" hidden></p>
+    <div class="dialog-actions">
+      <button type="submit" class="btn btn-primary">Save <span aria-hidden="true">&gt;</span></button>
+      <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn btn-danger-outline btn-sm" id="delete-pupil" hidden>Delete pupil</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="paste-dialog" class="wide" aria-labelledby="paste-title">
+  <h2 id="paste-title">Paste pupils from Excel</h2>
+  <div class="field">
+    <label for="paste-text">Rows from Excel</label>
+    <span class="hint" id="paste-hint">Columns in this order: Surname, First name, then Name to use and Pronouns if you have them. A heading row is fine.</span>
+    <textarea id="paste-text" rows="7" aria-describedby="paste-hint" autocomplete="off" spellcheck="false"></textarea>
+  </div>
+  <div class="row-actions">
+    <button type="button" class="btn btn-secondary" id="paste-preview">Preview</button>
+  </div>
+  <div id="paste-preview-area" hidden>
+    <div class="preview-wrap">
+      <table class="preview-table">
+        <thead><tr><th scope="col">Surname</th><th scope="col">First name</th><th scope="col">Name to use</th><th scope="col">Pronouns</th><th scope="col">Check</th></tr></thead>
+        <tbody id="paste-rows"></tbody>
+      </table>
+    </div>
+    <p class="paste-summary" id="paste-summary" aria-live="polite"></p>
+  </div>
+  <div class="dialog-actions">
+    <button type="button" class="btn btn-primary" id="paste-save" disabled>Add pupils <span aria-hidden="true">&gt;</span></button>
+    <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+  </div>
+</dialog>
+
+<!-- =====================================================================
+     Engine: the replacement, highlighting and character-count code.
+     Shared by both modes and loaded by the tests (tests/run-tests.js).
+     ===================================================================== -->
+<script id="engine">
+window.ReportEngine = (function () {
+  'use strict';
+
+  var PRONOUN_FORMS = {
+    he:   { subject: 'he',   object: 'him',  possessive: 'his',   possessivePronoun: 'his',    reflexive: 'himself' },
+    she:  { subject: 'she',  object: 'her',  possessive: 'her',   possessivePronoun: 'hers',   reflexive: 'herself' },
+    they: { subject: 'they', object: 'them', possessive: 'their', possessivePronoun: 'theirs', reflexive: 'themselves' }
+  };
+
+  // Name tags, written without apostrophes (they are removed before matching).
+  var NAME_TAGS = ['NAME', 'CHILD NAME', 'CHILDS NAME', 'PUPIL NAME', 'PUPILS NAME',
+                   'FIRST NAME', 'STUDENT NAME', 'STUDENTS NAME'];
+
+  // [role, the two words in the tag, optional third word]
+  var PRONOUN_TAGS = [
+    ['subject',           ['HE', 'SHE'],           ['THEY']],
+    ['object',            ['HIM', 'HER'],          ['THEM']],
+    ['possessive',        ['HIS', 'HER'],          ['THEIR']],
+    ['possessivePronoun', ['HIS', 'HERS'],         ['THEIRS']],
+    ['reflexive',         ['HIMSELF', 'HERSELF'],  ['THEMSELVES', 'THEMSELF']]
+  ];
+
+  function keyFor(words) {
+    var seen = {};
+    return words.filter(function (w) { return !seen[w] && (seen[w] = true); }).sort().join('/');
+  }
+
+  var TAG_LOOKUP = {};
+  NAME_TAGS.forEach(function (t) { TAG_LOOKUP[t] = 'name'; });
+  PRONOUN_TAGS.forEach(function (def) {
+    TAG_LOOKUP[keyFor(def[1])] = def[0];
+    def[2].forEach(function (extra) { TAG_LOOKUP[keyFor(def[1].concat(extra))] = def[0]; });
+  });
+  TAG_LOOKUP[keyFor(['S', 'HE'])] = 'subject'; // [S/HE]
+
+  // Turns the text inside a tag into a lookup key: case, spacing and order don't matter.
+  function normaliseTag(inner) {
+    var s = inner.replace(/[‘’ʼ`´]/g, "'").replace(/_/g, ' ').toUpperCase().trim();
+    if (s.indexOf('/') !== -1) {
+      return keyFor(s.split('/').map(function (w) { return w.trim().replace(/\s+/g, ' '); })
+                              .filter(Boolean));
+    }
+    return s.replace(/'/g, '').replace(/\s+/g, ' ');
+  }
+
+  function classifyTag(inner) {
+    return TAG_LOOKUP[normaliseTag(inner)] || null;
+  }
+
+  // [He/She] or [Name]: first letter capital, with some lower case.
+  function isTitleCase(inner) {
+    return /^[^A-Za-z]*[A-Z]/.test(inner) && /[a-z]/.test(inner);
+  }
+
+  // True if a word placed after `before` would start a sentence.
+  function isSentenceStart(before) {
+    if (/^\s*$/.test(before)) return true;
+    if (/\n[ \t]*$/.test(before)) return true;
+    if (!/[.!?]['"’”)]*\s+$/.test(before)) return false;
+    return !/(?:^|[\s(])(?:e\.g|i\.e|mr|mrs|ms|dr)\.\s+$/i.test(before);
+  }
+
+  function capitalise(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  var TAG_RE = /\[([^\[\]\n]{1,40})\]/g;
+
+  // person: { name: 'Sasha', pronouns: 'he' | 'she' | 'they' | null }
+  // Tags that can't be filled (unknown tag, no name, no pronouns) are left as they are.
+  function fillTags(text, person) {
+    var name = person && person.name ? String(person.name).trim() : '';
+    var forms = person && PRONOUN_FORMS[person.pronouns] || null;
+    var parts = [];
+    var out = '';
+    var last = 0;
+    var m;
+    TAG_RE.lastIndex = 0;
+    while ((m = TAG_RE.exec(text))) {
+      var role = classifyTag(m[1]);
+      var value = null;
+      if (role === 'name') value = name || null;
+      else if (role && forms) value = forms[role];
+      if (value === null) continue;
+
+      var before = text.slice(last, m.index);
+      if (before) { parts.push({ text: before, filled: false }); out += before; }
+      if (isTitleCase(m[1]) || isSentenceStart(out)) value = capitalise(value);
+      parts.push({ text: value, filled: true, tag: m[0] });
+      out += value;
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) {
+      parts.push({ text: text.slice(last), filled: false });
+      out += text.slice(last);
+    }
+    return { text: out, parts: parts };
+  }
+
+  // ---------- Things to check ----------
+  var PRONOUN_WORD = '(?:himself|herself|themselves|themself|theirs|their|them|they|hers|his|him|her|he|she|s)';
+  var SLASH_RE = new RegExp('\\b' + PRONOUN_WORD + '(?:\\s*\\/\\s*' + PRONOUN_WORD + ')+\\b', 'gi');
+  var OR_RE = /\b(?:he or she|she or he|him or her|her or him|his or her|her or his|his or hers|hers or his|himself or herself|herself or himself)\b/gi;
+  var PAREN_RE = /\(s\)he\b/gi;
+  var BRACKET_RE = /\[[^\[\]\n]*\]|<[^<>\n]*>|\{[^{}\n]*\}/g;
+  var STRAY_BRACKET_RE = /[\[\]{}]/g;
+
+  var ADVERB = '(?:also|always|often|sometimes|usually|now|still|really|generally|consistently|' +
+               'never|clearly|certainly|regularly|occasionally|rarely|frequently|particularly|' +
+               'especially|currently|already|even|only|just|then)';
+  var THEY_RE = new RegExp('\\bthey(?:\\s+' + ADVERB + ')?\\s+((?:is|was|has|does)(?:n[\'’]t)?|[a-z]+s)\\b', 'gi');
+  var NOT_A_VERB = ['always', 'sometimes', 'perhaps', 'unless', 'thus', 'themselves', 'as', 'us',
+                    'its', 'this', 'plus', 'besides', 'towards', 'afterwards', 'nevertheless',
+                    'regardless', 'nonetheless', 'yes', 'across', 'whereas', 'his', 'hers', 'theirs'];
+
+  // Returns [{ start, end, kind, text, label }], sorted, with no overlaps.
+  // kind: 'tag' (bracketed text), 'choice' (he/she left in), 'agreement' (they is)
+  function findIssues(text, pronouns) {
+    var found = [];
+    function scan(re, kind, label, keep) {
+      var m;
+      re.lastIndex = 0;
+      while ((m = re.exec(text))) {
+        if (!keep || keep(m)) {
+          found.push({ start: m.index, end: m.index + m[0].length, kind: kind, text: m[0], label: label });
+        }
+      }
+    }
+    scan(BRACKET_RE, 'tag', 'Leftover tag');
+    scan(STRAY_BRACKET_RE, 'tag', 'Stray bracket');
+    scan(SLASH_RE, 'choice', 'Pick one');
+    scan(OR_RE, 'choice', 'Pick one');
+    scan(PAREN_RE, 'choice', 'Pick one');
+    if (pronouns === 'they') {
+      scan(THEY_RE, 'agreement', 'Check the verb', function (m) {
+        var verb = m[1].toLowerCase();
+        if (/^(?:is|was|has|does)/.test(verb)) return true;
+        return NOT_A_VERB.indexOf(verb) === -1 && !/(?:ss|us|is)$/.test(verb);
+      });
+    }
+    found.sort(function (a, b) { return a.start - b.start || (b.end - b.start) - (a.end - a.start); });
+    var issues = [];
+    var lastEnd = -1;
+    found.forEach(function (i) {
+      if (i.start >= lastEnd) { issues.push(i); lastEnd = i.end; }
+    });
+    return issues;
+  }
+
+  // Characters including spaces and line breaks. Emoji count as one.
+  function countChars(text) {
+    return Array.from(String(text || '')).length;
+  }
+
+  // Splits the finished text into runs for display: { text, filled, issue }.
+  // issue is the index into `issues`, or -1.
+  function segments(parts, issues) {
+    var text = parts.map(function (p) { return p.text; }).join('');
+    var filled = [];
+    var pos = 0;
+    parts.forEach(function (p) {
+      if (p.filled) filled.push([pos, pos + p.text.length]);
+      pos += p.text.length;
+    });
+    var cuts = [0, text.length];
+    filled.forEach(function (r) { cuts.push(r[0], r[1]); });
+    issues.forEach(function (i) { cuts.push(i.start, i.end); });
+    cuts = cuts.filter(function (c, k) { return cuts.indexOf(c) === k; }).sort(function (a, b) { return a - b; });
+
+    var out = [];
+    for (var k = 0; k < cuts.length - 1; k++) {
+      var a = cuts[k], b = cuts[k + 1];
+      if (a === b) continue;
+      var issue = -1;
+      for (var j = 0; j < issues.length; j++) {
+        if (a >= issues[j].start && b <= issues[j].end) { issue = j; break; }
+      }
+      out.push({
+        text: text.slice(a, b),
+        filled: filled.some(function (r) { return a >= r[0] && b <= r[1]; }),
+        issue: issue
+      });
+    }
+    return out;
+  }
+
+  // The one function both modes call.
+  function process(raw, person) {
+    var input = String(raw || '').replace(/\r\n?/g, '\n').trim();
+    var filled = fillTags(input, person);
+    var issues = findIssues(filled.text, person && person.pronouns);
+    return { text: filled.text, parts: filled.parts, issues: issues, count: countChars(filled.text) };
+  }
+
+  // ---------- Pasting pupils from Excel ----------
+  function parsePronouns(value) {
+    var v = String(value || '').trim().toLowerCase().split(/[\/\s,]+/)[0];
+    if (/^(he|him|his|m|male|boy)$/.test(v)) return 'he';
+    if (/^(she|her|hers|f|female|girl)$/.test(v)) return 'she';
+    if (/^(they|them|their|theirs)$/.test(v)) return 'they';
+    return null;
+  }
+
+  function looksLikeHeader(cells) {
+    return /^(surname|last ?name|family ?name|name)$/i.test(cells[0] || '') ||
+           /first|forename|given/i.test(cells[1] || '');
+  }
+
+  // Tab-separated rows (from Excel): Surname, First name, [Name to use], [Pronouns].
+  // A line with no tabs is split on commas instead, so "Smith, Tom" works too.
+  function parsePupilPaste(text) {
+    var rows = [];
+    var skippedHeader = false;
+    var lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+    lines.forEach(function (line, index) {
+      if (!line.trim()) return;
+      var cells = (line.indexOf('\t') !== -1 ? line.split('\t') : line.split(','))
+        .map(function (c) { return c.trim().replace(/^"(.*)"$/, '$1').trim(); });
+      while (cells.length && !cells[cells.length - 1]) cells.pop();
+      if (!rows.length && !skippedHeader && looksLikeHeader(cells)) { skippedHeader = true; return; }
+
+      var surname = cells[0] || '';
+      var first = cells[1] || '';
+      var use = '';
+      var pronounText = '';
+      if (cells.length >= 4) { use = cells[2]; pronounText = cells[3]; }
+      else if (cells[2]) {
+        if (parsePronouns(cells[2])) pronounText = cells[2]; else use = cells[2];
+      }
+      var pronouns = parsePronouns(pronounText);
+      var problems = [];
+      if (!surname || !first) problems.push('Missing surname or first name');
+      if (pronounText && !pronouns) problems.push('Pronouns not recognised: ' + pronounText);
+      rows.push({ line: index + 1, surname: surname, first: first, use: use || first,
+                  pronouns: pronouns, problems: problems });
+    });
+    return { rows: rows, skippedHeader: skippedHeader };
+  }
+
+  return {
+    PRONOUN_FORMS: PRONOUN_FORMS,
+    classifyTag: classifyTag,
+    fillTags: fillTags,
+    findIssues: findIssues,
+    countChars: countChars,
+    segments: segments,
+    process: process,
+    parsePronouns: parsePronouns,
+    parsePupilPaste: parsePupilPaste
+  };
+})();
+</script>
+
+<!-- =====================================================================
+     App
+     ===================================================================== -->
+<script id="app">
+(function () {
+  'use strict';
+  var E = window.ReportEngine;
+  function $(id) { return document.getElementById(id); }
+
+  // ---------- Shared helpers ----------
+  var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg>';
+  var PENCIL_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  var PRONOUN_LABELS = { he: 'he / him', she: 'she / her', they: 'they / them' };
+
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+
+  // Copies plain text. Falls back to execCommand where the Clipboard API isn't allowed.
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacyCopy(text); });
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+  function legacyCopy(text) {
+    var active = document.activeElement;
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    ta.remove();
+    if (active && active.focus) active.focus();
+    return ok;
+  }
+
+  function flashButton(btn, labelEl, text) {
+    var original = labelEl.dataset.original || labelEl.textContent;
+    labelEl.dataset.original = original;
+    labelEl.textContent = text;
+    clearTimeout(btn._flash);
+    btn._flash = setTimeout(function () { labelEl.textContent = original; }, 1800);
+  }
+
+  // ---------- Character count ----------
+  // To add a limit later: give teachers an input that sets CHAR_SETTINGS.limit,
+  // then extend describeCount() to say how many are left or over.
+  var CHAR_SETTINGS = { limit: null };
+  function describeCount(count) {
+    return plural(count, 'character', 'characters');
+  }
+
+  // ---------- Output panel (shared by both modes) ----------
+  function createOutputPanel(mount, options) {
+    var node = $('output-template').content.firstElementChild.cloneNode(true);
+    mount.appendChild(node);
+    var el = {};
+    node.querySelectorAll('[data-role]').forEach(function (n) { el[n.dataset.role] = n; });
+    var current = null;
+    var lastIssueCount = 0;
+    var emptyText = options.emptyText || 'The finished comment will appear here.';
+
+    el.text.setAttribute('aria-label', 'Finished comment');
+    setTitle(options.title || 'Finished comment');
+
+    function setTitle(t) { el.title.textContent = t; }
+
+    function update(result) {
+      current = result && result.text ? result : null;
+      el.text.textContent = '';
+      el.issues.textContent = '';
+
+      if (!current) {
+        el.text.classList.add('is-empty');
+        el.text.textContent = emptyText;
+        el.count.textContent = describeCount(0);
+        el.badge.hidden = true;
+        el.copy.disabled = true;
+        lastIssueCount = 0;
+        return;
+      }
+
+      el.text.classList.remove('is-empty');
+      var marks = {};
+      E.segments(current.parts, current.issues).forEach(function (seg) {
+        var piece = document.createTextNode(seg.text);
+        if (seg.filled) {
+          var span = document.createElement('span');
+          span.className = 'filled';
+          span.appendChild(piece);
+          piece = span;
+        }
+        if (seg.issue !== -1) {
+          var mark = marks[seg.issue];
+          if (!mark || mark !== el.text.lastChild) {
+            mark = document.createElement('mark');
+            mark.title = current.issues[seg.issue].label;
+            marks[seg.issue] = mark;
+            el.text.appendChild(mark);
+          }
+          mark.appendChild(piece);
+        } else {
+          el.text.appendChild(piece);
+        }
+      });
+
+      current.issues.forEach(function (issue) {
+        var li = document.createElement('li');
+        var q = document.createElement('q');
+        q.textContent = issue.text;
+        li.appendChild(document.createTextNode(issue.label + ': '));
+        li.appendChild(q);
+        el.issues.appendChild(li);
+      });
+
+      var n = current.issues.length;
+      el.count.textContent = describeCount(current.count);
+      el.badge.hidden = n === 0;
+      el.badge.textContent = plural(n, 'thing to check', 'things to check');
+      el.copy.disabled = false;
+      if (n !== lastIssueCount) {
+        el.status.textContent = n ? plural(n, 'thing to check', 'things to check') : 'Nothing to check';
+        lastIssueCount = n;
+      }
+    }
+
+    el.copy.addEventListener('click', function () {
+      if (!current) return;
+      var copied = current;
+      copyText(copied.text).then(function (ok) {
+        flashButton(el.copy, el['copy-label'], ok ? 'Copied' : 'Copy failed');
+        el.status.textContent = ok ? 'Comment copied' : 'Copy failed. Select the text and copy it yourself.';
+        if (ok && options.onCopied) options.onCopied(copied);
+      });
+    });
+
+    return { update: update, setTitle: setTitle, root: node };
+  }
+
+  // ---------- Prompt line ----------
+  $('copy-prompt').addEventListener('click', function () {
+    var btn = this;
+    copyText($('prompt-line').textContent.trim()).then(function (ok) {
+      var original = btn.dataset.original || btn.textContent;
+      btn.dataset.original = original;
+      btn.textContent = ok ? 'Copied' : 'Copy failed';
+      setTimeout(function () { btn.textContent = original; }, 1800);
+    });
+  });
+
+  // ---------- Tabs ----------
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function selectTab(tab, focus) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      $(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    if (focus) tab.focus();
+  }
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener('click', function () { selectTab(tab, false); });
+    tab.addEventListener('keydown', function (e) {
+      var next = null;
+      if (e.key === 'ArrowRight') next = tabs[(i + 1) % tabs.length];
+      else if (e.key === 'ArrowLeft') next = tabs[(i - 1 + tabs.length) % tabs.length];
+      else if (e.key === 'Home') next = tabs[0];
+      else if (e.key === 'End') next = tabs[tabs.length - 1];
+      if (next) { e.preventDefault(); selectTab(next, true); }
+    });
+  });
+
+  // ---- Quick mode: never reads or writes storage ----
+  var quickForm = $('quick-form');
+  var quickName = $('q-name');
+  var quickComment = $('q-comment');
+  var quickOutput = createOutputPanel($('quick-output'), { title: 'Finished comment' });
+
+  function quickPronouns() {
+    var checked = quickForm.querySelector('input[name="q-pronouns"]:checked');
+    return checked ? checked.value : null;
+  }
+
+  function updateQuick() {
+    var name = quickName.value.trim();
+    var pronouns = quickPronouns();
+    quickOutput.update(E.process(quickComment.value, { name: name, pronouns: pronouns }));
+    var missing = [];
+    if (!name) missing.push('type a name');
+    if (!pronouns) missing.push('choose pronouns');
+    $('q-missing').textContent = quickComment.value.trim() && missing.length
+      ? 'To fill every tag, ' + missing.join(' and ') + '.' : '';
+  }
+
+  function clearQuick() {
+    quickForm.reset();
+    updateQuick();
+  }
+
+  quickForm.addEventListener('input', updateQuick);
+  quickForm.addEventListener('change', updateQuick);
+  quickForm.addEventListener('submit', function (e) { e.preventDefault(); });
+  $('q-clear').addEventListener('click', function () { clearQuick(); quickName.focus(); });
+  // Browsers can refill form fields on reload or Back. Clear them so nothing carries over.
+  window.addEventListener('pageshow', clearQuick);
+  clearQuick();
+  // ---- end Quick mode ----
+
+  // ---------- Storage (My classes only) ----------
+  var Store = (function () {
+    // Other pages on the same github.io site share localStorage, so the key is specific.
+    var KEY = 'cis-report-comment-names:v1';
+
+    function empty() { return { version: 1, classes: [], currentClassId: null }; }
+
+    function available() {
+      try { return !!window.localStorage; } catch (e) { return false; }
+    }
+
+    function clean(data) {
+      var state = empty();
+      if (!data || !Array.isArray(data.classes)) return state;
+      state.classes = data.classes.filter(function (c) { return c && c.id; }).map(function (c) {
+        return {
+          id: String(c.id),
+          name: String(c.name || 'Untitled class'),
+          pupils: (Array.isArray(c.pupils) ? c.pupils : []).filter(function (p) { return p && p.id; }).map(function (p) {
+            return {
+              id: String(p.id),
+              surname: String(p.surname || ''),
+              first: String(p.first || ''),
+              use: String(p.use || p.first || ''),
+              pronouns: E.PRONOUN_FORMS[p.pronouns] ? p.pronouns : 'they',
+              done: !!p.done
+            };
+          })
+        };
+      });
+      state.currentClassId = data.currentClassId || null;
+      return state;
+    }
+
+    function load() {
+      try {
+        var raw = window.localStorage.getItem(KEY);
+        return raw ? clean(JSON.parse(raw)) : empty();
+      } catch (e) {
+        return empty();
+      }
+    }
+
+    function save(state) {
+      try { window.localStorage.setItem(KEY, JSON.stringify(state)); return true; }
+      catch (e) { return false; }
+    }
+
+    function clearAll() {
+      try { window.localStorage.removeItem(KEY); return true; } catch (e) { return false; }
+    }
+
+    return { KEY: KEY, available: available, load: load, save: save, clearAll: clearAll };
+  })();
+
+  // ---------- Dialog helpers ----------
+  function openDialog(dlg, focusEl) {
+    dlg._returnFocus = document.activeElement;
+    dlg.showModal();
+    if (focusEl) focusEl.focus();
+  }
+  document.querySelectorAll('dialog').forEach(function (dlg) {
+    dlg.addEventListener('close', function () {
+      var back = dlg._returnFocus;
+      dlg._returnFocus = null;
+      if (back && document.contains(back) && !back.disabled) back.focus();
+    });
+    dlg.querySelectorAll('[data-close]').forEach(function (b) {
+      b.addEventListener('click', function () { dlg.close(); });
+    });
+  });
+
+  function confirmAction(title, body, confirmLabel) {
+    var dlg = $('confirm-dialog');
+    $('confirm-title').textContent = title;
+    $('confirm-body').textContent = body;
+    $('confirm-yes').textContent = confirmLabel;
+    dlg.returnValue = '';
+    return new Promise(function (resolve) {
+      dlg.addEventListener('close', function () { resolve(dlg.returnValue === 'yes'); }, { once: true });
+      openDialog(dlg, $('confirm-no'));
+    });
+  }
+  $('confirm-yes').addEventListener('click', function () { $('confirm-dialog').close('yes'); });
+  $('confirm-no').addEventListener('click', function () { $('confirm-dialog').close('no'); });
+
+  // ---------- My classes ----------
+  var state = Store.load();
+  var selectedPupilId = null;
+  var commentBox = $('c-comment');
+  var classOutput = createOutputPanel($('class-output'), {
+    title: 'Finished comment',
+    emptyText: 'Choose a pupil, then paste their comment.',
+    onCopied: function () {
+      var p = selectedPupil();
+      if (p && !p.done) { p.done = true; commit(); }
+    }
+  });
+
+  function newId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+  function currentClass() {
+    for (var i = 0; i < state.classes.length; i++) {
+      if (state.classes[i].id === state.currentClassId) return state.classes[i];
+    }
+    return state.classes[0] || null;
+  }
+  function sortedPupils(cls) {
+    return cls.pupils.slice().sort(function (a, b) {
+      return a.surname.localeCompare(b.surname, 'en-GB', { sensitivity: 'base' }) ||
+             a.first.localeCompare(b.first, 'en-GB', { sensitivity: 'base' });
+    });
+  }
+  function selectedPupil() {
+    var cls = currentClass();
+    if (!cls) return null;
+    for (var i = 0; i < cls.pupils.length; i++) {
+      if (cls.pupils[i].id === selectedPupilId) return cls.pupils[i];
+    }
+    return null;
+  }
+  function useName(p) { return p.use || p.first; }
+
+  function commit() {
+    var ok = Store.save(state);
+    var err = $('storage-error');
+    err.hidden = ok;
+    if (!ok) err.textContent = "Couldn't save. This browser may be blocking saved data.";
+    render();
+  }
+
+  function render() {
+    var cls = currentClass();
+    if (cls) state.currentClassId = cls.id;
+
+    // Class picker
+    var select = $('class-select');
+    select.textContent = '';
+    state.classes.forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c.id;
+      o.textContent = c.name;
+      select.appendChild(o);
+    });
+    if (cls) select.value = cls.id;
+    ['class-select', 'rename-class', 'clear-ticks', 'delete-class'].forEach(function (id) { $(id).disabled = !cls; });
+
+    $('no-classes').hidden = !!cls;
+    $('class-grid').hidden = !cls;
+    if (!cls) { selectedPupilId = null; return; }
+
+    // Pupil list
+    var pupils = sortedPupils(cls);
+    var list = $('pupil-list');
+    var focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.pupil : null;
+    var focusedKind = focusedId ? document.activeElement.dataset.kind : null;
+    list.textContent = '';
+    pupils.forEach(function (p) {
+      var li = document.createElement('li');
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pupil-btn' + (p.done ? ' is-done' : '');
+      btn.dataset.pupil = p.id;
+      btn.dataset.kind = 'select';
+      btn.setAttribute('aria-pressed', p.id === selectedPupilId ? 'true' : 'false');
+
+      var tick = document.createElement('span');
+      tick.className = 'tick';
+      if (p.done) tick.innerHTML = CHECK_SVG;
+      btn.appendChild(tick);
+
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'pupil-name';
+      nameSpan.textContent = p.surname + ', ' + p.first;
+      btn.appendChild(nameSpan);
+
+      if (useName(p) !== p.first) {
+        var use = document.createElement('span');
+        use.className = 'pupil-use';
+        use.textContent = '(' + useName(p) + ')';
+        btn.appendChild(use);
+      }
+      if (p.done) {
+        var sr = document.createElement('span');
+        sr.className = 'sr-only';
+        sr.textContent = ', done';
+        btn.appendChild(sr);
+      }
+      btn.addEventListener('click', function () { selectPupil(p.id, true); });
+
+      var edit = document.createElement('button');
+      edit.type = 'button';
+      edit.className = 'icon-btn';
+      edit.dataset.pupil = p.id;
+      edit.dataset.kind = 'edit';
+      edit.setAttribute('aria-label', 'Edit ' + p.surname + ', ' + p.first);
+      edit.title = 'Edit';
+      edit.innerHTML = PENCIL_SVG;
+      edit.addEventListener('click', function () { openPupilDialog(p.id); });
+
+      li.appendChild(btn);
+      li.appendChild(edit);
+      list.appendChild(li);
+    });
+    if (focusedId) {
+      var again = list.querySelector('[data-pupil="' + focusedId + '"][data-kind="' + focusedKind + '"]');
+      if (again) again.focus();
+    }
+
+    var done = pupils.filter(function (p) { return p.done; }).length;
+    $('progress').textContent = pupils.length ? done + ' of ' + pupils.length + ' done' : '';
+    $('no-pupils').hidden = pupils.length > 0;
+    $('work-area').hidden = pupils.length === 0;
+
+    renderWork();
+  }
+
+  function renderWork() {
+    var p = selectedPupil();
+    var banner = $('banner');
+    banner.textContent = '';
+    banner.classList.toggle('is-active', !!p);
+    commentBox.disabled = !p;
+
+    if (!p) {
+      var hint = document.createElement('p');
+      hint.className = 'banner-detail';
+      hint.textContent = 'Choose a pupil from the list.';
+      banner.appendChild(hint);
+      $('c-comment-label').textContent = 'Comment from the AI';
+      classOutput.setTitle('Finished comment');
+    } else {
+      var label = document.createElement('p');
+      label.className = 'banner-label';
+      label.textContent = 'Writing for';
+      if (p.done) {
+        var doneEl = document.createElement('span');
+        doneEl.className = 'banner-done';
+        doneEl.innerHTML = CHECK_SVG;
+        doneEl.appendChild(document.createTextNode('Copied'));
+        label.appendChild(doneEl);
+      }
+      var name = document.createElement('p');
+      name.className = 'banner-name';
+      name.textContent = useName(p);
+      var detail = document.createElement('p');
+      detail.className = 'banner-detail';
+      detail.textContent = p.surname + ', ' + p.first + ' · ' + PRONOUN_LABELS[p.pronouns];
+      banner.appendChild(label);
+      banner.appendChild(name);
+      banner.appendChild(detail);
+      $('c-comment-label').textContent = 'Comment for ' + useName(p) + ' from the AI';
+      classOutput.setTitle('Finished comment for ' + useName(p));
+    }
+    updateClassOutput();
+
+    var next = nextPupil();
+    $('next-pupil').disabled = !next;
+  }
+
+  function updateClassOutput() {
+    var p = selectedPupil();
+    classOutput.update(p ? E.process(commentBox.value, { name: useName(p), pronouns: p.pronouns }) : null);
+  }
+
+  function selectPupil(id, focusComment) {
+    if (id !== selectedPupilId) commentBox.value = ''; // a comment never follows you to another pupil
+    selectedPupilId = id;
+    render();
+    if (focusComment) commentBox.focus();
+  }
+
+  function nextPupil() {
+    var cls = currentClass();
+    if (!cls) return null;
+    var pupils = sortedPupils(cls);
+    if (!selectedPupilId) return pupils[0] || null;
+    for (var i = 0; i < pupils.length; i++) {
+      if (pupils[i].id === selectedPupilId) return pupils[i + 1] || null;
+    }
+    return null;
+  }
+
+  commentBox.addEventListener('input', updateClassOutput);
+  $('next-pupil').addEventListener('click', function () {
+    var n = nextPupil();
+    if (n) selectPupil(n.id, true);
+  });
+
+  $('class-select').addEventListener('change', function () {
+    state.currentClassId = this.value;
+    selectedPupilId = null;
+    commentBox.value = '';
+    commit();
+  });
+
+  // Class dialog (new and rename)
+  var classDialogMode = 'new';
+  function openClassDialog(mode) {
+    classDialogMode = mode;
+    var cls = currentClass();
+    $('class-dialog-title').textContent = mode === 'new' ? 'New class' : 'Rename class';
+    $('class-name').value = mode === 'rename' && cls ? cls.name : '';
+    $('class-name-error').hidden = true;
+    openDialog($('class-dialog'), $('class-name'));
+  }
+  $('new-class').addEventListener('click', function () { openClassDialog('new'); });
+  $('first-class').addEventListener('click', function () { openClassDialog('new'); });
+  $('rename-class').addEventListener('click', function () { openClassDialog('rename'); });
+  $('class-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = $('class-name').value.trim();
+    if (!name) { $('class-name-error').hidden = false; $('class-name').focus(); return; }
+    if (classDialogMode === 'new') {
+      var cls = { id: newId(), name: name, pupils: [] };
+      state.classes.push(cls);
+      state.currentClassId = cls.id;
+      selectedPupilId = null;
+      commentBox.value = '';
+    } else if (currentClass()) {
+      currentClass().name = name;
+    }
+    $('class-dialog').close();
+    commit();
+  });
+
+  $('clear-ticks').addEventListener('click', function () {
+    var cls = currentClass();
+    if (!cls) return;
+    confirmAction('Clear ticks for ' + cls.name + '?', 'Every pupil in this class will be marked as not done. Names stay as they are.', 'Clear ticks')
+      .then(function (yes) {
+        if (!yes) return;
+        cls.pupils.forEach(function (p) { p.done = false; });
+        commit();
+      });
+  });
+
+  $('delete-class').addEventListener('click', function () {
+    var cls = currentClass();
+    if (!cls) return;
+    confirmAction('Delete ' + cls.name + '?',
+      'This removes the class and its ' + plural(cls.pupils.length, 'pupil', 'pupils') + ' from this browser. You can’t undo this.',
+      'Delete class')
+      .then(function (yes) {
+        if (!yes) return;
+        state.classes = state.classes.filter(function (c) { return c !== cls; });
+        state.currentClassId = state.classes[0] ? state.classes[0].id : null;
+        selectedPupilId = null;
+        commentBox.value = '';
+        commit();
+        $('class-select').disabled ? $('new-class').focus() : $('class-select').focus();
+      });
+  });
+
+  $('delete-all').addEventListener('click', function () {
+    confirmAction('Delete all my data?',
+      'This removes every class and pupil saved in this browser. You can’t undo this.',
+      'Delete everything')
+      .then(function (yes) {
+        if (!yes) return;
+        Store.clearAll();
+        state = Store.load();
+        selectedPupilId = null;
+        commentBox.value = '';
+        render();
+        $('new-class').focus();
+      });
+  });
+
+  // Pupil dialog (add and edit)
+  var editingId = null;
+  var useTouched = false;
+  function setPupilPronouns(value) {
+    document.querySelectorAll('input[name="p-pronouns"]').forEach(function (r) { r.checked = r.value === value; });
+  }
+  function openPupilDialog(id) {
+    var cls = currentClass();
+    if (!cls) return;
+    var p = null;
+    cls.pupils.forEach(function (x) { if (x.id === id) p = x; });
+    editingId = p ? p.id : null;
+    $('pupil-dialog-title').textContent = p ? 'Edit pupil' : 'Add a pupil';
+    $('p-surname').value = p ? p.surname : '';
+    $('p-first').value = p ? p.first : '';
+    $('p-use').value = p ? useName(p) : '';
+    useTouched = !!p && useName(p) !== p.first;
+    setPupilPronouns(p ? p.pronouns : null);
+    $('pupil-error').hidden = true;
+    $('delete-pupil').hidden = !p;
+    openDialog($('pupil-dialog'), $('p-surname'));
+  }
+  $('add-pupil').addEventListener('click', function () { openPupilDialog(null); });
+  $('add-pupil-2').addEventListener('click', function () { openPupilDialog(null); });
+  $('p-first').addEventListener('input', function () { if (!useTouched) $('p-use').value = this.value; });
+  $('p-use').addEventListener('input', function () { useTouched = this.value.trim() !== ''; });
+
+  $('pupil-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var cls = currentClass();
+    var surname = $('p-surname').value.trim();
+    var first = $('p-first').value.trim();
+    var use = $('p-use').value.trim() || first;
+    var checked = document.querySelector('input[name="p-pronouns"]:checked');
+    var error = !surname || !first ? 'Add a surname and a first name.'
+              : !checked ? 'Choose pronouns.' : '';
+    if (error) {
+      $('pupil-error').textContent = error;
+      $('pupil-error').hidden = false;
+      return;
+    }
+    if (editingId) {
+      cls.pupils.forEach(function (p) {
+        if (p.id === editingId) { p.surname = surname; p.first = first; p.use = use; p.pronouns = checked.value; }
+      });
+    } else {
+      cls.pupils.push({ id: newId(), surname: surname, first: first, use: use, pronouns: checked.value, done: false });
+    }
+    $('pupil-dialog').close();
+    commit();
+  });
+
+  $('delete-pupil').addEventListener('click', function () {
+    var cls = currentClass();
+    var id = editingId;
+    var p = null;
+    cls.pupils.forEach(function (x) { if (x.id === id) p = x; });
+    if (!p) return;
+    $('pupil-dialog').close();
+    confirmAction('Delete ' + p.first + ' ' + p.surname + '?', 'This removes the pupil from ' + cls.name + '.', 'Delete pupil')
+      .then(function (yes) {
+        if (!yes) return;
+        cls.pupils = cls.pupils.filter(function (x) { return x.id !== id; });
+        if (selectedPupilId === id) { selectedPupilId = null; commentBox.value = ''; }
+        commit();
+      });
+  });
+
+  // Paste from Excel
+  var pasteRows = [];
+  function openPasteDialog() {
+    $('paste-text').value = '';
+    pasteRows = [];
+    $('paste-preview-area').hidden = true;
+    $('paste-save').disabled = true;
+    openDialog($('paste-dialog'), $('paste-text'));
+  }
+  $('paste-pupils').addEventListener('click', openPasteDialog);
+  $('paste-pupils-2').addEventListener('click', openPasteDialog);
+  $('paste-text').addEventListener('input', function () {
+    $('paste-preview-area').hidden = true;
+    $('paste-save').disabled = true;
+  });
+
+  function pupilKey(surname, first) { return (surname + '\u0000' + first).toLowerCase(); }
+
+  $('paste-preview').addEventListener('click', function () {
+    var cls = currentClass();
+    var existing = {};
+    cls.pupils.forEach(function (p) { existing[pupilKey(p.surname, p.first)] = true; });
+    var seen = {};
+    pasteRows = E.parsePupilPaste($('paste-text').value).rows.map(function (r) {
+      var key = pupilKey(r.surname, r.first);
+      r.skip = '';
+      if (!r.surname || !r.first) r.skip = 'Skipped: missing surname or first name';
+      else if (existing[key]) r.skip = 'Skipped: already in this class';
+      else if (seen[key]) r.skip = 'Skipped: listed twice';
+      seen[key] = true;
+      return r;
+    });
+
+    var body = $('paste-rows');
+    body.textContent = '';
+    pasteRows.forEach(function (r, i) {
+      var tr = document.createElement('tr');
+      if (r.skip) tr.className = 'is-skipped';
+      function cell(text) { var td = document.createElement('td'); td.textContent = text; tr.appendChild(td); return td; }
+      cell(r.surname);
+      cell(r.first);
+      var useCell = cell('');
+      var pronounCell = cell('');
+      if (r.skip) {
+        useCell.textContent = r.use;
+        pronounCell.textContent = r.pronouns ? PRONOUN_LABELS[r.pronouns] : '';
+      } else {
+        var useInput = document.createElement('input');
+        useInput.type = 'text';
+        useInput.value = r.use;
+        useInput.spellcheck = false;
+        useInput.setAttribute('aria-label', 'Name to use for ' + r.first + ' ' + r.surname);
+        useInput.addEventListener('input', function () { r.use = useInput.value.trim() || r.first; });
+        useCell.appendChild(useInput);
+
+        var sel = document.createElement('select');
+        sel.setAttribute('aria-label', 'Pronouns for ' + r.first + ' ' + r.surname);
+        [['', 'Choose'], ['he', 'he / him'], ['she', 'she / her'], ['they', 'they / them']].forEach(function (o) {
+          var opt = document.createElement('option');
+          opt.value = o[0];
+          opt.textContent = o[1];
+          sel.appendChild(opt);
+        });
+        sel.value = r.pronouns || '';
+        sel.addEventListener('change', function () { r.pronouns = sel.value || null; updatePasteSummary(); });
+        pronounCell.appendChild(sel);
+      }
+      r.statusEl = cell('');
+      tr.dataset.index = i;
+      body.appendChild(tr);
+    });
+    $('paste-preview-area').hidden = false;
+    updatePasteSummary();
+  });
+
+  function updatePasteSummary() {
+    pasteRows.forEach(function (r) {
+      var problem = r.skip || (!r.pronouns ? (r.problems.join('. ') || 'Choose pronouns') : '');
+      r.statusEl.className = 'row-status' + (problem ? ' bad' : '');
+      r.statusEl.textContent = problem || 'OK';
+    });
+    var adding = pasteRows.filter(function (r) { return !r.skip; });
+    var needPronouns = adding.filter(function (r) { return !r.pronouns; }).length;
+    var skipped = pasteRows.length - adding.length;
+    var parts = [];
+    if (!pasteRows.length) parts.push('No rows found. Copy the cells in Excel and paste them above.');
+    else parts.push(plural(adding.length, 'pupil', 'pupils') + ' to add.');
+    if (skipped) parts.push(plural(skipped, 'row', 'rows') + ' skipped.');
+    if (needPronouns) parts.push('Choose pronouns for ' + plural(needPronouns, 'pupil', 'pupils') + '.');
+    $('paste-summary').textContent = parts.join(' ');
+    var save = $('paste-save');
+    save.disabled = !adding.length || needPronouns > 0;
+    save.firstChild.textContent = adding.length ? 'Add ' + plural(adding.length, 'pupil', 'pupils') + ' ' : 'Add pupils ';
+  }
+
+  $('paste-save').addEventListener('click', function () {
+    var cls = currentClass();
+    pasteRows.forEach(function (r) {
+      if (r.skip || !r.pronouns) return;
+      cls.pupils.push({ id: newId(), surname: r.surname, first: r.first, use: r.use || r.first, pronouns: r.pronouns, done: false });
+    });
+    $('paste-dialog').close();
+    commit();
+  });
+
+  // Another tab changed the saved data: reload it.
+  window.addEventListener('storage', function (e) {
+    if (e.key !== null && e.key !== Store.KEY) return;
+    state = Store.load();
+    if (!selectedPupil()) { selectedPupilId = null; commentBox.value = ''; }
+    render();
+  });
+
+  if (!Store.available()) {
+    $('storage-error').hidden = false;
+    $('storage-error').textContent = 'This browser is blocking saved data, so My classes can’t be used here. Quick comment still works.';
+  }
+  render();
+
+  // Open on My classes if there are saved classes.
+  if (state.classes.length) selectTab($('tab-classes'), false);
+})();
+</script>
+
+</body>
+</html>

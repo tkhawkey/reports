@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tests: Report comment names</title>
+<style>
+  body { font-family: Georgia, serif; color: #002199; margin: 24px; line-height: 1.4; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 24px 0 6px; }
+  #summary { font-size: 18px; font-weight: bold; margin: 12px 0; }
+  .pass { color: #047314; }
+  .fail { color: #C21E3A; font-weight: bold; }
+  ul { margin: 0; padding-left: 20px; }
+  li { margin: 2px 0; }
+  pre { white-space: pre-wrap; margin: 2px 0 6px; font-size: 13px; }
+  iframe { width: 1200px; height: 700px; border: 1px solid #ccc; margin-top: 24px; }
+</style>
+</head>
+<body>
+<h1>Tests</h1>
+<p>Runs the engine tests and static checks against <code>../index.html</code>, then drives the page in the frame below.
+Open this page from a web server (for example GitHub Pages), not by double-clicking the file.</p>
+<p id="summary">Running…</p>
+<div id="results"></div>
+<iframe id="app" title="The tool under test" allow="clipboard-write"></iframe>
+
+<!-- Shared by this page and tests/run-tests.js (Node). -->
+<script id="shared-tests">
+function makeHarness() {
+  var results = [];
+  function fmt(v) { return typeof v === 'string' ? JSON.stringify(v) : JSON.stringify(v); }
+  var assert = {
+    equal: function (actual, expected, msg) {
+      if (actual !== expected) throw new Error((msg ? msg + ': ' : '') + 'expected ' + fmt(expected) + ', got ' + fmt(actual));
+    },
+    deepEqual: function (actual, expected, msg) {
+      if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error((msg ? msg + ': ' : '') + 'expected ' + fmt(expected) + ', got ' + fmt(actual));
+    },
+    ok: function (value, msg) { if (!value) throw new Error(msg || 'expected a true value'); }
+  };
+  function test(group, name, fn) { results.push({ group: group, name: name, fn: fn }); }
+  async function run() {
+    var out = [];
+    for (var i = 0; i < results.length; i++) {
+      var r = results[i];
+      try { await r.fn(assert); out.push({ group: r.group, name: r.name, ok: true }); }
+      catch (e) { out.push({ group: r.group, name: r.name, ok: false, error: e && e.message || String(e) }); }
+    }
+    return out;
+  }
+  return { test: test, run: run };
+}
+
+function defineEngineTests(test, E) {
+  var G;
+  function fill(text, pronouns, name) {
+    return E.process(text, { name: name === undefined ? 'Sam' : name, pronouns: pronouns }).text;
+  }
+  function kinds(text, pronouns, name) {
+    return E.process(text, { name: name === undefined ? 'Sam' : name, pronouns: pronouns }).issues.map(function (i) { return i.kind; });
+  }
+
+  // ---- Every tag in all three pronoun sets ----
+  G = 'Pronoun tags';
+  var TAGS = ['[HE/SHE]', '[HIM/HER]', '[HIS/HER]', '[HIS/HERS]', '[HIMSELF/HERSELF]'];
+  var EXPECTED = {
+    he:   ['he', 'him', 'his', 'his', 'himself'],
+    she:  ['she', 'her', 'her', 'hers', 'herself'],
+    they: ['they', 'them', 'their', 'theirs', 'themselves']
+  };
+  ['he', 'she', 'they'].forEach(function (p) {
+    TAGS.forEach(function (tag, i) {
+      test(G, tag + ' with ' + p, function (a) {
+        a.equal(fill('Today ' + tag + ' did well.', p), 'Today ' + EXPECTED[p][i] + ' did well.');
+      });
+    });
+  });
+  test(G, 'Full sentence, she', function (a) {
+    a.equal(fill('[NAME] has worked hard. [HE/SHE] used [HIS/HER] notes, the idea was [HIS/HERS] and [HE/SHE] checked it [HIMSELF/HERSELF]. I am proud of [HIM/HER].', 'she', 'Amira'),
+      'Amira has worked hard. She used her notes, the idea was hers and she checked it herself. I am proud of her.');
+  });
+  test(G, 'Full sentence, they', function (a) {
+    a.equal(fill('[NAME] shares [HIS/HER] ideas. The best one was [HIS/HERS]. Others listen to [HIM/HER].', 'they', 'Sasha'),
+      'Sasha shares their ideas. The best one was theirs. Others listen to them.');
+  });
+
+  // ---- Name tags ----
+  G = 'Name tags';
+  [
+    ['[NAME]', 'Sam'], ['[CHILD NAME]', 'Sam'], ["[CHILD'S NAME]", 'Sam'], ['[CHILD’S NAME]', 'Sam'],
+    ['[PUPIL NAME]', 'Sam'], ['[FIRST NAME]', 'Sam'], ['[child name]', 'Sam'], ['[ NAME ]', 'Sam'],
+    ["[Pupil's Name]", 'Sam'], ['[name]', 'Sam'], ['[CHILD_NAME]', 'Sam']
+  ].forEach(function (c) {
+    test(G, c[0], function (a) { a.equal(fill('Well done, ' + c[0] + '.', 'he'), 'Well done, ' + c[1] + '.'); });
+  });
+  test(G, 'Name to use, not first name (Alexander → Sasha)', function (a) {
+    a.equal(fill('[NAME] reads well.', 'they', 'Sasha'), 'Sasha reads well.');
+  });
+  test(G, 'Several name tags in one comment', function (a) {
+    a.equal(fill('[NAME] is kind. Well done, [CHILD NAME]!', 'he'), 'Sam is kind. Well done, Sam!');
+  });
+
+  // ---- Possessives ----
+  G = 'Possessives';
+  test(G, "[NAME]'s", function (a) { a.equal(fill("I enjoy [NAME]'s stories.", 'she'), "I enjoy Sam's stories."); });
+  test(G, '[NAME]’s (curly apostrophe)', function (a) { a.equal(fill('I enjoy [NAME]’s stories.', 'she'), 'I enjoy Sam’s stories.'); });
+  test(G, "[NAME]'s at the start", function (a) { a.equal(fill("[NAME]'s work is neat.", 'he'), "Sam's work is neat."); });
+  test(G, "Name ending in s: James's", function (a) { a.equal(fill("[NAME]'s work", 'he', 'James'), "James's work"); });
+
+  // ---- Capitalisation ----
+  G = 'Capitalisation';
+  [
+    ['[HE/SHE] works hard.', 'He works hard.', 'start of text'],
+    ['   [HE/SHE] works hard.', 'He works hard.', 'start of text after spaces'],
+    ['Good. [HE/SHE] tries.', 'Good. He tries.', 'after full stop'],
+    ['Great! [HIS/HER] book', 'Great! His book', 'after exclamation mark'],
+    ['Why? [HE/SHE] asked.', 'Why? He asked.', 'after question mark'],
+    ['Good.\n[HE/SHE] tries.', 'Good.\nHe tries.', 'after full stop and new line'],
+    ['Good work this term\n[HE/SHE] tries.', 'Good work this term\nHe tries.', 'at the start of a new line'],
+    ['Good.  [HIMSELF/HERSELF] first', 'Good.  Himself first', 'after two spaces'],
+    ['He said "Yes." [HE/SHE] left.', 'He said "Yes." He left.', 'after a closing quote'],
+    ['Kind, [HE/SHE] helps.', 'Kind, he helps.', 'not after a comma'],
+    ['Kind and [HE/SHE] helps.', 'Kind and he helps.', 'not mid-sentence'],
+    ['Good.[HE/SHE]', 'Good.he', 'not without a space after the full stop'],
+    ['Skills, e.g. [HIS/HER] reading', 'Skills, e.g. his reading', 'not after e.g.'],
+    ['Skills, i.e. [HIS/HER] reading', 'Skills, i.e. his reading', 'not after i.e.'],
+    ['Then [He/She] smiled.', 'Then He smiled.', 'title-case tag mid-sentence'],
+    ['Then [His/Her] work', 'Then His work', 'title-case [His/Her]'],
+    ['[he/she] works', 'He works', 'lower-case tag at start'],
+    ['and [HE/SHE] works', 'and he works', 'capital tag mid-sentence stays lower case'],
+    ['[NAME] works. [Name] too.', 'Sam works. Sam too.', 'name tags']
+  ].forEach(function (c) {
+    test(G, c[2], function (a) { a.equal(fill(c[0], 'he'), c[1]); });
+  });
+  test(G, 'They at start: "They"', function (a) { a.equal(fill('[HE/SHE] are kind.', 'they'), 'They are kind.'); });
+  test(G, 'She after a tag-made sentence', function (a) { a.equal(fill('[NAME] tries. [HE/SHE] wins.', 'she'), 'Sam tries. She wins.'); });
+
+  // ---- Tag variants ----
+  G = 'Tag variants';
+  [
+    ['[she / he]', 'she', 'she'], ['[ He / She ]', 'she', 'She'], ['[he/she]', 'he', 'he'], ['[SHE/HE]', 'they', 'they'],
+    ['[HER/HIS]', 'he', 'his'], ['[her / his]', 'they', 'their'], ['[HERS / HIS]', 'she', 'hers'],
+    ['[herself/himself]', 'she', 'herself'], ['[HER/HIM]', 'he', 'him'], ['[HE/SHE/THEY]', 'they', 'they'],
+    ['[they/she/he]', 'she', 'she'], ['[HIM / HER / THEM]', 'they', 'them'], ['[HIS/HER/THEIR]', 'she', 'her'],
+    ['[HIS/HERS/THEIRS]', 'he', 'his'], ['[himself/herself/themselves]', 'they', 'themselves'],
+    ['[S/HE]', 'she', 'she'], ['[s / he]', 'he', 'he']
+  ].forEach(function (c) {
+    test(G, c[0] + ' (' + c[1] + ')', function (a) { a.equal(fill('Then ' + c[0] + ' went.', c[1]), 'Then ' + c[2] + ' went.'); });
+  });
+  test(G, 'Unknown tag is left alone', function (a) { a.equal(fill('In [SUBJECT] [HE/SHE] works.', 'he'), 'In [SUBJECT] he works.'); });
+
+  // ---- Missing details ----
+  G = 'Missing details';
+  test(G, 'No pronouns: pronoun tags stay and are flagged', function (a) {
+    var r = E.process('[NAME] said [HE/SHE] would.', { name: 'Sam', pronouns: null });
+    a.equal(r.text, 'Sam said [HE/SHE] would.');
+    a.deepEqual(r.issues.map(function (i) { return i.text; }), ['[HE/SHE]']);
+  });
+  test(G, 'No name: name tags stay and are flagged', function (a) {
+    var r = E.process('[NAME] said [HE/SHE] would.', { name: '  ', pronouns: 'she' });
+    a.equal(r.text, '[NAME] said she would.');
+    a.equal(r.issues.length, 1);
+  });
+
+  // ---- Things to check ----
+  G = 'Things to check';
+  [
+    ['Good work in [SUBJECT].', ['tag']],
+    ['Good work in <subject>.', ['tag']],
+    ['Good work in {topic}.', ['tag']],
+    ['Good work in [ ].', ['tag']],
+    ['A stray ] bracket.', ['tag']],
+    ['Then he/she went.', ['choice']],
+    ['Then His/Her work.', ['choice']],
+    ['Then s/he went.', ['choice']],
+    ['Thank him / her.', ['choice']],
+    ['It was his/hers.', ['choice']],
+    ['By himself/herself.', ['choice']],
+    ['Then (s)he went.', ['choice']],
+    ['Then he or she went.', ['choice']],
+    ['Then his or her work.', ['choice']],
+    ['[CLASS] and he/she and {x}.', ['tag', 'choice', 'tag']]
+  ].forEach(function (c) {
+    test(G, c[0], function (a) { a.deepEqual(kinds(c[0], 'he'), c[1]); });
+  });
+  test(G, 'A clean comment has nothing to check', function (a) {
+    a.deepEqual(kinds("[NAME] scored 3/4 and/or better. [HE/SHE] said: 'Yes!' (Great.)", 'she'), []);
+  });
+  test(G, 'Count of things to check', function (a) {
+    a.equal(E.process('[NAME] in [CLASS] and he/she.', { name: 'Sam', pronouns: 'he' }).issues.length, 2);
+  });
+  test(G, 'Issue positions match the text', function (a) {
+    var r = E.process('[NAME] is in [CLASS].', { name: 'Sam', pronouns: 'he' });
+    a.equal(r.text.slice(r.issues[0].start, r.issues[0].end), '[CLASS]');
+  });
+
+  // ---- They and verbs ----
+  G = 'They and verbs';
+  ['they is', 'they was', 'they has', 'they does', "they doesn't", 'they isn’t', 'They also has', 'they always tries', 'They enjoys']
+    .forEach(function (s) {
+      test(G, 'Flags "' + s + '"', function (a) { a.deepEqual(kinds('Then ' + s + ' it.', 'they'), ['agreement']); });
+    });
+  ['they are', 'they were', 'they have', 'they do', 'they focus', 'they discuss', 'they always try', 'they themselves', 'they sometimes ask', 'they progress']
+    .forEach(function (s) {
+      test(G, 'Does not flag "' + s + '"', function (a) { a.deepEqual(kinds('Then ' + s + ' it.', 'they'), []); });
+    });
+  test(G, 'Only for pupils using they', function (a) {
+    a.deepEqual(kinds('[HE/SHE] is kind and [HE/SHE] has tried.', 'she'), []);
+  });
+  test(G, 'Tag-made "they is" and "they has" flagged', function (a) {
+    var r = E.process('[HE/SHE] is kind and [HE/SHE] has tried.', { name: 'Sam', pronouns: 'they' });
+    a.equal(r.text, 'They is kind and they has tried.');
+    a.deepEqual(r.issues.map(function (i) { return i.text; }), ['They is', 'they has']);
+  });
+
+  // ---- Character count ----
+  G = 'Character count';
+  test(G, 'Counts spaces', function (a) { a.equal(E.process('Sam is kind.', {}).count, 12); });
+  test(G, 'Counts after replacement', function (a) { a.equal(E.process('[NAME] is kind.', { name: 'Alexandra', pronouns: 'she' }).count, 18); });
+  test(G, 'Counts line breaks once, including Windows ones', function (a) {
+    var r = E.process('Line\r\nTwo', {});
+    a.equal(r.text, 'Line\nTwo');
+    a.equal(r.count, 8);
+  });
+  test(G, 'Trims blank space around the comment', function (a) {
+    var r = E.process('  \n Sam is kind. \n ', {});
+    a.equal(r.text, 'Sam is kind.');
+    a.equal(r.count, 12);
+  });
+  test(G, 'Emoji and accents count as one each', function (a) { a.equal(E.countChars('Zoë 👍'), 5); });
+  test(G, 'Empty comment is 0', function (a) { a.equal(E.process('', {}).count, 0); });
+  test(G, 'Count matches the text that is copied', function (a) {
+    var r = E.process('[NAME] said [HE/SHE] would. Well done, [CHILD NAME]!', { name: 'Sasha', pronouns: 'they' });
+    a.equal(r.count, Array.from(r.text).length);
+  });
+
+  // ---- Display segments ----
+  G = 'Highlighting';
+  test(G, 'Filled words are marked, the rest is plain', function (a) {
+    var r = E.process('[NAME] is [HE/SHE].', { name: 'Sam', pronouns: 'he' });
+    a.deepEqual(E.segments(r.parts, r.issues).map(function (s) { return [s.text, s.filled, s.issue]; }),
+      [['Sam', true, -1], [' is ', false, -1], ['he', true, -1], ['.', false, -1]]);
+  });
+  test(G, 'An issue that covers a filled word', function (a) {
+    var r = E.process('Then [HE/SHE] is kind.', { name: 'Sam', pronouns: 'they' });
+    var segs = E.segments(r.parts, r.issues);
+    a.deepEqual(segs.map(function (s) { return [s.text, s.filled, s.issue]; }),
+      [['Then ', false, -1], ['they', true, 0], [' is', false, 0], [' kind.', false, -1]]);
+    a.equal(segs.map(function (s) { return s.text; }).join(''), r.text);
+  });
+
+  // ---- Pasting from Excel ----
+  G = 'Paste from Excel';
+  test(G, 'Two columns with a heading row', function (a) {
+    var r = E.parsePupilPaste('Surname\tFirst name\nSmith\tTom\nJones\tAmira\n');
+    a.equal(r.skippedHeader, true);
+    a.deepEqual(r.rows.map(function (x) { return [x.surname, x.first, x.use, x.pronouns]; }),
+      [['Smith', 'Tom', 'Tom', null], ['Jones', 'Amira', 'Amira', null]]);
+  });
+  test(G, 'Four columns', function (a) {
+    var r = E.parsePupilPaste('Novak\tAlexander\tSasha\tthey\r\nSmith\tTom\t\the');
+    a.deepEqual(r.rows.map(function (x) { return [x.surname, x.first, x.use, x.pronouns]; }),
+      [['Novak', 'Alexander', 'Sasha', 'they'], ['Smith', 'Tom', 'Tom', 'he']]);
+  });
+  test(G, 'Three columns: third is pronouns or name to use', function (a) {
+    var r = E.parsePupilPaste('Smith\tTom\tM\nJones\tElizabeth\tBeth\nLee\tKim\tgirl');
+    a.deepEqual(r.rows.map(function (x) { return [x.use, x.pronouns]; }), [['Tom', 'he'], ['Beth', null], ['Kim', 'she']]);
+  });
+  test(G, 'Comma-separated line', function (a) {
+    var r = E.parsePupilPaste('Smith, Tom');
+    a.deepEqual([r.rows[0].surname, r.rows[0].first], ['Smith', 'Tom']);
+  });
+  test(G, 'Blank lines ignored, problems reported', function (a) {
+    var r = E.parsePupilPaste('\n\nSmith\n\nJones\tAmy\tSasha\txyz\n');
+    a.equal(r.rows.length, 2);
+    a.deepEqual(r.rows[0].problems, ['Missing surname or first name']);
+    a.deepEqual(r.rows[1].problems, ['Pronouns not recognised: xyz']);
+  });
+  test(G, 'Pronoun spellings', function (a) {
+    a.deepEqual(['he', 'He/him', 'M', 'male', 'she/her', 'F', 'Female', 'they/them', 'They', '', 'x'].map(E.parsePronouns),
+      ['he', 'he', 'he', 'he', 'she', 'she', 'she', 'they', 'they', null, null]);
+  });
+}
+
+// `html` is the source of index.html.
+function defineStaticTests(test, html) {
+  var G = 'Privacy checks (source)';
+  function script(id) {
+    var m = new RegExp('<script id="' + id + '">([\\s\\S]*?)<\\/script>').exec(html);
+    return m ? m[1] : '';
+  }
+  function csp() {
+    var m = /<meta http-equiv="Content-Security-Policy" content="([^"]+)"/.exec(html);
+    return m ? m[1] : '';
+  }
+  test(G, 'Has a Content-Security-Policy that blocks connections', function (a) {
+    var p = csp();
+    ["default-src 'none'", "connect-src 'none'", "form-action 'none'", "base-uri 'none'", "object-src 'none'", "frame-src 'none'"]
+      .forEach(function (d) { a.ok(p.indexOf(d) !== -1, 'missing ' + d); });
+    a.ok(p.indexOf('unsafe-eval') === -1, 'must not allow eval');
+    a.ok(!/https?:|\*/.test(p), 'must not allow any host');
+  });
+  test(G, 'Policy comes before any script or style', function (a) {
+    var at = html.indexOf('Content-Security-Policy');
+    a.ok(at > 0 && at < html.indexOf('<script') && at < html.indexOf('<style'));
+  });
+  test(G, 'No external scripts, styles, fonts or images', function (a) {
+    a.ok(!/<script[^>]+src=/i.test(html), 'script src');
+    a.ok(!/<link[^>]+rel="?stylesheet/i.test(html), 'stylesheet link');
+    a.ok(!/@import/i.test(html), '@import');
+    a.ok(!/(?:src|href)="(?:https?:)?\/\//i.test(html), 'external src or href');
+    a.ok(!/url\(\s*['"]?(?:https?:)?\/\//i.test(html), 'external url()');
+  });
+  test(G, 'No code that sends data', function (a) {
+    var code = script('engine') + script('app');
+    [/\bfetch\s*\(/, /\bnew\s+(?:XMLHttpRequest|WebSocket|EventSource|Worker|SharedWorker)\b/, /sendBeacon/,
+     /navigator\.share/, /\bimport\s*\(/, /window\.open\s*\(/, /\.submit\s*\(/].forEach(function (re) {
+      a.ok(!re.test(code), 'found ' + re);
+    });
+  });
+  test(G, 'Quick mode code never touches storage', function (a) {
+    var app = script('app');
+    var start = app.indexOf('// ---- Quick mode');
+    var end = app.indexOf('// ---- end Quick mode');
+    a.ok(start !== -1 && end > start, 'Quick mode markers not found');
+    var quick = app.slice(start, end);
+    ['localStorage', 'sessionStorage', 'indexedDB', 'Store.', 'document.cookie'].forEach(function (w) {
+      a.ok(quick.indexOf(w) === -1, 'Quick mode mentions ' + w);
+    });
+  });
+  test(G, 'localStorage is used only inside the Store', function (a) {
+    var app = script('app');
+    var start = app.indexOf('var Store = (function');
+    var end = app.indexOf('// ---------- Dialog helpers');
+    var outside = app.slice(0, start) + app.slice(end);
+    a.ok(start !== -1 && end > start, 'Store not found');
+    a.ok(outside.indexOf('localStorage') === -1, 'localStorage used outside the Store');
+    a.ok(html.indexOf('sessionStorage') === -1 && html.indexOf('indexedDB') === -1 && html.indexOf('document.cookie') === -1);
+  });
+  test(G, 'Storage key is distinctive', function (a) {
+    var m = /var KEY = '([^']+)'/.exec(script('app'));
+    a.ok(m && /^cis-report-comment-names:v\d+$/.test(m[1]), 'key: ' + (m && m[1]));
+  });
+  test(G, 'Engine has no DOM or storage code', function (a) {
+    var engine = script('engine');
+    ['document.', 'localStorage', 'navigator.'].forEach(function (w) { a.ok(engine.indexOf(w) === -1, 'engine mentions ' + w); });
+  });
+}
+</script>
+
+<!-- Browser-only: drives the real page in the frame. -->
+<script>
+(function () {
+  var frame = document.getElementById('app');
+  var harness = makeHarness();
+  var test = harness.test;
+
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function loadFrame() {
+    return new Promise(function (resolve) {
+      frame.onload = function () { resolve(frame.contentWindow); };
+      frame.src = '../index.html?t=' + Date.now();
+    });
+  }
+  function setValue(win, el, value) {
+    el.value = value;
+    el.dispatchEvent(new win.Event('input', { bubbles: true }));
+  }
+  function stubClipboard(win) {
+    var box = { text: null };
+    Object.defineProperty(win.navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: function (t) { box.text = t; return Promise.resolve(); } }
+    });
+    return box;
+  }
+  function spyStorage(win) {
+    var calls = [];
+    var proto = win.Storage.prototype;
+    ['setItem', 'removeItem', 'clear'].forEach(function (name) {
+      var original = proto[name];
+      proto[name] = function () { calls.push([name].concat([].slice.call(arguments, 0, 1))); return original.apply(this, arguments); };
+    });
+    return calls;
+  }
+  function snapshot() {
+    var s = {};
+    for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); s[k] = localStorage.getItem(k); }
+    return JSON.stringify(s);
+  }
+
+  fetch('../index.html').then(function (r) { return r.text(); }).then(async function (html) {
+    defineStaticTests(test, html);
+
+    var win = await loadFrame();
+    defineEngineTests(test, win.ReportEngine);
+
+    var G = 'In the browser';
+    var KEY = 'cis-report-comment-names:v1';
+    var saved = localStorage.getItem(KEY);
+
+    test(G, 'The browser blocks network requests (CSP)', async function (a) {
+      var blocked = 0;
+      for (var url of ['https://example.com/', './index.html']) {
+        try { await win.fetch(url); } catch (e) { blocked++; }
+      }
+      a.equal(blocked, 2, 'requests that were blocked');
+      var img = win.document.createElement('img');
+      var violations = 0;
+      win.document.addEventListener('securitypolicyviolation', function () { violations++; });
+      img.src = 'https://example.com/pixel.png';
+      win.document.body.appendChild(img);
+      await wait(300);
+      img.remove();
+      a.ok(violations >= 1, 'image request was not blocked');
+    });
+
+    test(G, 'Quick mode never writes to storage', async function (a) {
+      win = await loadFrame();
+      var before = snapshot();
+      var calls = spyStorage(win);
+      var clip = stubClipboard(win);
+      var d = win.document;
+      d.getElementById('tab-quick').click();
+      setValue(win, d.getElementById('q-name'), 'Sasha');
+      d.querySelector('input[name="q-pronouns"][value="they"]').click();
+      setValue(win, d.getElementById('q-comment'), '[NAME] has worked hard. [HE/SHE] is kind.');
+      d.querySelector('#quick-output [data-role="copy"]').click();
+      await wait(100);
+      d.getElementById('q-clear').click();
+      d.getElementById('copy-prompt').click();
+      await wait(100);
+      a.deepEqual(calls, [], 'storage calls');
+      a.equal(snapshot(), before, 'storage changed');
+      a.ok(clip.text, 'nothing was copied');
+    });
+
+    test(G, 'Quick mode output, warning count and plain-text copy', async function (a) {
+      win = await loadFrame();
+      var clip = stubClipboard(win);
+      var d = win.document;
+      d.getElementById('tab-quick').click();
+      setValue(win, d.getElementById('q-name'), 'Sasha');
+      d.querySelector('input[name="q-pronouns"][value="they"]').click();
+      setValue(win, d.getElementById('q-comment'), '[NAME] has worked hard. [HE/SHE] is kind in [CLASS].');
+      var out = d.querySelector('#quick-output');
+      a.equal(out.querySelector('[data-role="text"]').textContent, 'Sasha has worked hard. They is kind in [CLASS].');
+      a.equal(out.querySelectorAll('mark').length, 2, 'highlights');
+      a.equal(out.querySelector('[data-role="badge"]').textContent, '2 things to check');
+      a.equal(out.querySelector('[data-role="badge"]').hidden, false);
+      a.equal(out.querySelector('[data-role="count"]').textContent, '47 characters');
+      out.querySelector('[data-role="copy"]').click();
+      await wait(100);
+      a.equal(clip.text, 'Sasha has worked hard. They is kind in [CLASS].');
+    });
+
+    test(G, 'Quick mode is empty after a reload', async function (a) {
+      var d = win.document;
+      setValue(win, d.getElementById('q-name'), 'Sasha');
+      setValue(win, d.getElementById('q-comment'), '[NAME] is kind.');
+      win = await loadFrame();
+      d = win.document;
+      a.equal(d.getElementById('q-name').value, '');
+      a.equal(d.getElementById('q-comment').value, '');
+      a.equal(d.querySelector('input[name="q-pronouns"]:checked'), null);
+    });
+
+    test(G, 'Quick mode Clear button empties everything', async function (a) {
+      var d = win.document;
+      d.getElementById('tab-quick').click();
+      setValue(win, d.getElementById('q-name'), 'Sasha');
+      d.querySelector('input[name="q-pronouns"][value="she"]').click();
+      setValue(win, d.getElementById('q-comment'), '[NAME] is kind.');
+      d.getElementById('q-clear').click();
+      a.equal(d.getElementById('q-name').value + d.getElementById('q-comment').value, '');
+      a.equal(d.querySelector('input[name="q-pronouns"]:checked'), null);
+      a.ok(d.querySelector('#quick-output [data-role="copy"]').disabled, 'copy should be disabled');
+    });
+
+    test(G, 'My classes: saves under its own key, one pupil at a time, ticks on copy', async function (a) {
+      try {
+        localStorage.removeItem(KEY);
+        win = await loadFrame();
+        var calls = spyStorage(win);
+        var clip = stubClipboard(win);
+        var d = win.document;
+        d.getElementById('tab-classes').click();
+
+        d.getElementById('first-class').click();
+        d.getElementById('class-name').value = 'Test 5M';
+        d.getElementById('class-form').requestSubmit();
+
+        d.getElementById('paste-pupils-2').click();
+        setValue(win, d.getElementById('paste-text'), 'Surname\tFirst name\tName to use\tPronouns\nNovak\tAlexander\tSasha\tthey\nSmith\tTom\t\the\nAdams\tTom\t\t');
+        d.getElementById('paste-preview').click();
+        a.ok(d.getElementById('paste-save').disabled, 'save should wait for pronouns');
+        var sel = d.querySelectorAll('#paste-rows select')[2];
+        sel.value = 'he';
+        sel.dispatchEvent(new win.Event('change'));
+        a.ok(!d.getElementById('paste-save').disabled, 'save should be enabled');
+        d.getElementById('paste-save').click();
+
+        var names = Array.prototype.map.call(d.querySelectorAll('.pupil-name'), function (n) { return n.textContent; });
+        a.deepEqual(names, ['Adams, Tom', 'Novak, Alexander', 'Smith, Tom'], 'list shows Surname, First name, sorted');
+
+        d.querySelectorAll('.pupil-btn')[1].click();
+        a.equal(d.querySelector('.banner-name').textContent, 'Sasha', 'banner shows name to use');
+        setValue(win, d.getElementById('c-comment'), '[NAME] shares [HIS/HER] ideas.');
+        a.equal(d.querySelector('#class-output [data-role="text"]').textContent, 'Sasha shares their ideas.');
+        d.querySelector('#class-output [data-role="copy"]').click();
+        await wait(100);
+        a.equal(clip.text, 'Sasha shares their ideas.');
+        a.ok(d.querySelectorAll('.pupil-btn')[1].classList.contains('is-done'), 'pupil should be ticked');
+
+        d.getElementById('next-pupil').click();
+        a.equal(d.querySelector('.banner-name').textContent, 'Tom');
+        a.equal(d.getElementById('c-comment').value, '', 'comment box clears when changing pupil');
+
+        var keys = calls.map(function (c) { return c[1]; }).filter(function (k, i, all) { return all.indexOf(k) === i; });
+        a.deepEqual(keys, [KEY], 'storage keys written');
+        var stored = JSON.parse(localStorage.getItem(KEY));
+        a.equal(stored.classes[0].pupils.filter(function (p) { return p.done; }).length, 1);
+        a.equal(JSON.stringify(stored).indexOf('shares'), -1, 'comments must not be stored');
+
+        win = await loadFrame();
+        d = win.document;
+        a.equal(d.getElementById('tab-classes').getAttribute('aria-selected'), 'true', 'opens on My classes');
+        a.equal(d.querySelectorAll('.pupil-btn.is-done').length, 1, 'tick kept after reload');
+      } finally {
+        if (saved === null) localStorage.removeItem(KEY); else localStorage.setItem(KEY, saved);
+      }
+    });
+
+    var results = await harness.run();
+    render(results);
+    window.__testResults = results;
+  }).catch(function (e) {
+    document.getElementById('summary').textContent = 'Could not run tests: ' + e.message;
+    document.getElementById('summary').className = 'fail';
+    window.__testResults = [{ group: 'Setup', name: 'Load', ok: false, error: e.message }];
+  });
+
+  function render(results) {
+    var failed = results.filter(function (r) { return !r.ok; });
+    var summary = document.getElementById('summary');
+    summary.textContent = (results.length - failed.length) + ' passed, ' + failed.length + ' failed';
+    summary.className = failed.length ? 'fail' : 'pass';
+    var box = document.getElementById('results');
+    var groups = {};
+    results.forEach(function (r) { (groups[r.group] = groups[r.group] || []).push(r); });
+    Object.keys(groups).forEach(function (g) {
+      var h = document.createElement('h2');
+      var gf = groups[g].filter(function (r) { return !r.ok; }).length;
+      h.textContent = g + ' (' + (groups[g].length - gf) + '/' + groups[g].length + ')';
+      box.appendChild(h);
+      var ul = document.createElement('ul');
+      groups[g].forEach(function (r) {
+        var li = document.createElement('li');
+        li.className = r.ok ? 'pass' : 'fail';
+        li.textContent = (r.ok ? '✓ ' : '✗ ') + r.name;
+        if (!r.ok) { var pre = document.createElement('pre'); pre.textContent = r.error; li.appendChild(pre); }
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    });
+  }
+})();
+</script>
+</body>
+</html>
